@@ -3,7 +3,6 @@ package br.com.mam.sgmc.api.controller;
 import java.sql.Date;
 import java.util.List;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -32,7 +32,7 @@ public class MembroController {
     private final MembroService membroService;
 
     @PostMapping
-    public ResponseEntity<?> criarMembro(@RequestBody MembroRequestDTO membroDTO) throws ResponseStatusException {
+    public ResponseEntity<?> criarMembro(@RequestBody @Valid MembroRequestDTO membroDTO) throws ResponseStatusException {
         Membro membro = new Membro();
 
         membro.setNome(membroDTO.getNome());
@@ -47,7 +47,8 @@ public class MembroController {
         membro.setTamanhoCamisa(membroDTO.getTamanhoCamisa());
         membro.setDataAdmissao(Date.valueOf(membroDTO.getDataAdmissao()));
 
-        membro = this.membroService.salvarMembro(membro);
+
+        membro = this.membroService.salvarMembro(membro, membroDTO.getIdCargo(), membroDTO.getIdSede());
 
         String location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
                 .buildAndExpand(membro.getId()).toUriString();
@@ -55,8 +56,8 @@ public class MembroController {
     }
 
     @GetMapping
-    public ResponseEntity<List<MembroResponseDTO>> listarMembros() {
-        List<Membro> membros = membroService.listarMembros();
+    public ResponseEntity<List<MembroResponseDTO>> listarMembros(@RequestParam(required = false) Integer ativo) {
+        List<Membro> membros = membroService.listarMembros(ativo);
         List<MembroResponseDTO> responses = membros.stream()
                 .map(MembroResponseDTO::toResponseDTO)
                 .toList();
@@ -64,9 +65,9 @@ public class MembroController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Membro> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<MembroResponseDTO> buscarPorId(@PathVariable Long id) {
         Membro membro = membroService.buscarPorId(id);
-        return ResponseEntity.status(HttpStatus.OK).body(membro);
+        return ResponseEntity.status(HttpStatus.OK).body(MembroResponseDTO.toResponseDTO(membro));
     }
 
     @PutMapping("/{id}")
@@ -84,7 +85,7 @@ public class MembroController {
         membro.setTamanhoCamisa(membroDTO.getTamanhoCamisa());
         membro.setDataAdmissao(Date.valueOf(membroDTO.getDataAdmissao()));
 
-        membro = this.membroService.atualizarMembro(membro, id);
+        membro = this.membroService.atualizarMembro(membro, id, membroDTO.getIdCargo(), membroDTO.getIdSede());
         return ResponseEntity.status(HttpStatus.OK).body(membro);
     }
 }
