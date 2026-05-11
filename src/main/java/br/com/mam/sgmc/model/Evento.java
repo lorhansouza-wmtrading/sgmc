@@ -39,7 +39,7 @@ public class Evento {
     @JoinColumn(name = "id_local")
     private Local local;
 
-    @OneToMany(mappedBy = "evento")
+    @OneToMany(mappedBy = "pk.evento")
     @JsonManagedReference
     private List<Participacao> participacoes;
 }
