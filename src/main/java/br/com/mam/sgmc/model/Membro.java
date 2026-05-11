@@ -4,6 +4,8 @@ import java.sql.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 import br.com.mam.sgmc.model.moto.Moto;
 import jakarta.persistence.Column;
@@ -46,6 +48,14 @@ public class Membro {
     private String tamanhoCamisa;
     @Column(name = "data_admissao")
     private Date dataAdmissao;
+
+    @ManyToOne
+    @JoinColumn(name = "id_cargo")
+    private Cargo cargo;
+
+    @ManyToOne
+    @JoinColumn(name = "id_sede")
+    private Sede sede;
 
     @OneToMany(mappedBy = "membro")
     @JsonManagedReference

@@ -24,6 +24,8 @@ public class MembroResponseDTO implements Serializable {
     private Boolean ativo;
     private String tamanhoCamisa;
     private Date dataAdmissao;
+    private Long idCargo;
+    private Long idSede;
 
     public static MembroResponseDTO toResponseDTO(Membro membro){
         MembroResponseDTO dto = new MembroResponseDTO();
@@ -39,10 +41,13 @@ public class MembroResponseDTO implements Serializable {
         dto.setAtivo(getBooleanFromInt(membro.getAtivo()));
         dto.setTamanhoCamisa(membro.getTamanhoCamisa());
         dto.setDataAdmissao(membro.getDataAdmissao());
+        dto.setIdCargo(membro.getCargo() != null ? membro.getCargo().getId() : null);
+        dto.setIdSede(membro.getSede() != null ? membro.getSede().getId() : null);
         return dto;
     }
 
     private static Boolean getBooleanFromInt(Integer value){
+        if (value == null) return false;
         return value == 0 ? true : false;
     }
 }

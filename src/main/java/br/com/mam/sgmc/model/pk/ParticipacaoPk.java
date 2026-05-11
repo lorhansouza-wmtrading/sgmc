@@ -22,6 +22,6 @@ public class ParticipacaoPk implements Serializable {
     private Evento evento;
 
     @ManyToOne
-    @JoinColumn(name = "id_membro", referencedColumnName = "idmembro")
+    @JoinColumn(name = "id_membro", referencedColumnName = "id_membro")
     private Membro membro;
 }

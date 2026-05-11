@@ -8,6 +8,7 @@ import br.com.mam.sgmc.model.enums.Batizado;
 import br.com.mam.sgmc.model.enums.Escudo;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,6 +30,7 @@ public class MembroRequestDTO implements Serializable {
     @NotBlank(message = "Telefone do membro não preenchido.")
     private String telefone;
     @NotNull(message = "Data de nascimento do membro não preenchida.")
+    @Past(message = "Data de nascimento inválida.")
     private LocalDate dataNascimento;
     @NotNull(message = "Batizado do membro não preenchido.")
     private Boolean ehBatizado;
@@ -40,6 +42,8 @@ public class MembroRequestDTO implements Serializable {
     private String tamanhoCamisa;
     @NotNull(message = "Data de admissão do membro não preenchida.")
     private LocalDate dataAdmissao;
+    private Long idCargo;
+    private Long idSede;
     // private List<Moto> motos;
 
     public Integer getCodigoBatizado() {
