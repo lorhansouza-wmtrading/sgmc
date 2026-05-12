@@ -15,8 +15,8 @@ public class MotoRequestDTO {
     @NotBlank(message = "Marca é obrigatória")
     private String marca;
 
-    @NotBlank(message = "Ano é obrigatório")
-    private int ano;
+    @NotNull(message = "Ano é obrigatório")
+    private Integer ano;
 
     @NotBlank(message = "Cor é obrigatória")
     private String cor;
