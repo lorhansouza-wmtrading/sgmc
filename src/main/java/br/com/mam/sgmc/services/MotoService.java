@@ -32,6 +32,10 @@ public class MotoService {
 
     public Moto salvarMoto(Moto moto, Long idMembro) {
 
+        if (this.motoRepository.findByPlaca(moto.getPlaca()) != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Placa já cadastrada");
+        }
+
         Marca marca = this.marcaRepository.findByNome(moto.getModelo().getMarca().getNome());
         if (marca == null) {
             marca = this.marcaRepository.save(moto.getModelo().getMarca());
@@ -52,7 +56,14 @@ public class MotoService {
             condicaoSeguro = this.condicaoSeguroRepository.save(moto.getSeguro().getCondicoesSeguro().get(0));
         }
 
-        moto.setMembro(this.membroService.buscarPorId(idMembro));
+        Membro membro = this.membroService.buscarPorId(idMembro);
+        if (membro == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Membro não encontrado");
+        }
+        if (membro.getAtivo().equals(br.com.mam.sgmc.model.enums.Ativo.INATIVO.getCodigo())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Moto não pode ser associada a um membro inativo");
+        }
+        moto.setMembro(membro);
         return this.motoRepository.save(moto);
     }
 
@@ -64,8 +75,15 @@ public class MotoService {
         return motoEncontrada;
     }
 
-    public List<Moto> listarMotos() {
-        return motoRepository.findAll();
+    public List<Moto> listarMotos(Long idMembro, String modelo, String marca, String nomeSeguro) {
+        // Implementação simplificada de filtros usando stream para exemplo
+        // Em produção, o ideal seria usar Specification ou Query Methods
+        return motoRepository.findAll().stream()
+            .filter(m -> idMembro == null || m.getMembro().getId().equals(idMembro))
+            .filter(m -> modelo == null || m.getModelo().getNome().equalsIgnoreCase(modelo))
+            .filter(m -> marca == null || m.getModelo().getMarca().getNome().equalsIgnoreCase(marca))
+            .filter(m -> nomeSeguro == null || m.getSeguro().getNome().equalsIgnoreCase(nomeSeguro))
+            .toList();
     }
 
     public Moto atualizarMoto(Moto moto, Long idMembro) {
@@ -98,7 +116,10 @@ public class MotoService {
 
         Membro membro = this.membroService.buscarPorId(idMembro);
         if (membro == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Membro não encontrado");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Membro não encontrado! Moto não pode ser associada a um membro que não existe.");
+        }
+        if (membro.getAtivo().equals(br.com.mam.sgmc.model.enums.Ativo.INATIVO.getCodigo())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Moto não pode ser associada a um membro inativo");
         }
 
         motoEncontrada.setAno(moto.getAno());
