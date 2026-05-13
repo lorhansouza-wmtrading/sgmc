@@ -1,10 +1,8 @@
 package br.com.mam.sgmc.repository;
 
-import java.util.Optional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import br.com.mam.sgmc.model.localizacao.Uf;
 
 public interface UfRepository extends JpaRepository<Uf, String> {
-    Optional<Uf> findByUfSiglaIgnoreCase(String sigla);
+    Uf findByUfSiglaIgnoreCase(String sigla);
 }
