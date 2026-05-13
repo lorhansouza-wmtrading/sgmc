@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import br.com.mam.sgmc.errors.ResourceNotFoundException;
 import br.com.mam.sgmc.model.Membro;
 import br.com.mam.sgmc.model.moto.CondicaoSeguro;
 import br.com.mam.sgmc.model.moto.Marca;
@@ -58,7 +59,7 @@ public class MotoService {
 
         Membro membro = this.membroService.buscarPorId(idMembro);
         if (membro == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Membro não encontrado");
+            throw new ResourceNotFoundException("Membro não encontrado");
         }
         if (membro.getAtivo().equals(br.com.mam.sgmc.model.enums.Ativo.INATIVO.getCodigo())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Moto não pode ser associada a um membro inativo");
@@ -70,7 +71,7 @@ public class MotoService {
     public Moto buscarPorPlaca(String placa) {
         Moto motoEncontrada = this.motoRepository.findByPlaca(placa);
         if (motoEncontrada == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Moto não encontrada");
+            throw new ResourceNotFoundException("Moto não encontrada");
         }
         return motoEncontrada;
     }
@@ -91,7 +92,7 @@ public class MotoService {
         Moto motoEncontrada = this.buscarPorPlaca(moto.getPlaca());
 
         if (motoEncontrada == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Moto não encontrada");
+            throw new ResourceNotFoundException("Moto não encontrada");
         }
 
         Modelo modelo = this.modeloRepository.findByNome(moto.getModelo().getNome());
@@ -116,7 +117,7 @@ public class MotoService {
 
         Membro membro = this.membroService.buscarPorId(idMembro);
         if (membro == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Membro não encontrado! Moto não pode ser associada a um membro que não existe.");
+            throw new ResourceNotFoundException("Membro não encontrado! Moto não pode ser associada a um membro que não existe.");
         }
         if (membro.getAtivo().equals(br.com.mam.sgmc.model.enums.Ativo.INATIVO.getCodigo())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Moto não pode ser associada a um membro inativo");
