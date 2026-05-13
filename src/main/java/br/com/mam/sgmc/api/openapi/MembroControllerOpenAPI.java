@@ -41,7 +41,7 @@ public interface MembroControllerOpenAPI {
             @ApiResponse(responseCode = "201", description = "Membro criado com sucesso"),
             @ApiResponse(responseCode = "400", description = "Requisição inválida")
     })
-    ResponseEntity<?> criarMembro(@RequestBody MembroRequestDTO membroDTO);
+    ResponseEntity<Void> criarMembro(@RequestBody @Valid MembroRequestDTO membroDTO);
 
     @Operation(summary = "Inativa um membro", description = "Desativa um membro, marcando-o como inativo.")
     @ApiResponses(value = {
