@@ -8,17 +8,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import br.com.mam.sgmc.api.dto.response.CidadeResponseDTO;
 import br.com.mam.sgmc.api.dto.response.PaisResponseDTO;
 import br.com.mam.sgmc.api.dto.response.UfResponseDTO;
+import br.com.mam.sgmc.api.openapi.LocalizacaoControllerOpenAPI;
 import br.com.mam.sgmc.services.LocalizacaoService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/localizacao")
 @RequiredArgsConstructor
-public class LocalizacaoController {
+public class LocalizacaoController implements LocalizacaoControllerOpenAPI{
 
     private final LocalizacaoService localizacaoService;
 
@@ -26,7 +28,7 @@ public class LocalizacaoController {
     public ResponseEntity<List<PaisResponseDTO>> listarPaisesComFiltros(
         @RequestParam(required = false) String sigla,
         @RequestParam(required = false) String nome,
-        @RequestParam(required = false) String continente) {
+        @RequestParam(required = false) String continente) throws ResponseStatusException{
         List<PaisResponseDTO> response = this.localizacaoService.listarPaisesComFiltros(sigla, nome, continente)
             .stream()
             .map(PaisResponseDTO::toResponseDTO)
@@ -39,7 +41,7 @@ public class LocalizacaoController {
         @RequestParam(required = false) String sigla,
         @RequestParam(required = false) String nome,
         @RequestParam(required = false) String regiao,
-        @RequestParam(required = false) String pais) {
+        @RequestParam(required = false) String pais) throws ResponseStatusException{
         List<UfResponseDTO> response = this.localizacaoService.listarUfsComFiltros(sigla, nome, regiao, pais)
             .stream()
             .map(UfResponseDTO::toResponseDTO)
@@ -51,7 +53,7 @@ public class LocalizacaoController {
     public ResponseEntity<List<CidadeResponseDTO>> listarCidades(
         @RequestParam(required = false) String ufSigla,
         @RequestParam(required = false) String nome,
-        @RequestParam(required = false) String pais) {
+        @RequestParam(required = false) String pais) throws ResponseStatusException{
         List<CidadeResponseDTO> response = this.localizacaoService.listarCidadesComFiltros(ufSigla, nome, pais)
             .stream()
             .map(CidadeResponseDTO::toResponseDTO)
