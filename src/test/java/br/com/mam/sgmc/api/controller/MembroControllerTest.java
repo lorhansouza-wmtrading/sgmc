@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import br.com.mam.sgmc.api.dto.request.IdentificacaoRequestDTO;
 import br.com.mam.sgmc.api.dto.request.MembroRequestDTO;
 import br.com.mam.sgmc.model.Membro;
 import br.com.mam.sgmc.model.enums.Ativo;
@@ -66,6 +67,14 @@ class MembroControllerTest {
         membroRequestDTO.setTamanhoCamisa("G");
         membroRequestDTO.setDataAdmissao(LocalDate.now());
 
+        IdentificacaoRequestDTO identidadeDTO = new IdentificacaoRequestDTO();
+        identidadeDTO.setTipo("CPF");
+        identidadeDTO.setIdentidade("12345678909");
+        identidadeDTO.setEmissor("SSP");
+        identidadeDTO.setDataEmissao(LocalDate.of(2010, 1, 1));
+        identidadeDTO.setPaisSigla("BR");
+        membroRequestDTO.setIdentidade(identidadeDTO);
+
         membro = new Membro();
         membro.setId(1L);
         membro.setNome(membroRequestDTO.getNome());
@@ -77,7 +86,7 @@ class MembroControllerTest {
     @Test
     @DisplayName("Deve criar um membro com sucesso")
     void deveCriarMembroComSucesso() throws Exception {
-        when(membroService.salvarMembro(any(Membro.class), any(), any())).thenReturn(membro);
+        when(membroService.salvarMembro(any(Membro.class), any(), any(), any())).thenReturn(membro);
 
         mockMvc.perform(post("/membros")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -135,13 +144,13 @@ class MembroControllerTest {
         
         membro.setAtivo(Ativo.INATIVO.getCodigo());
 
-        when(membroService.atualizarMembro(any(Membro.class), eq(1L), any(), any())).thenReturn(membro);
+        when(membroService.atualizarMembro(any(Membro.class), eq(1L), any(), any(), any())).thenReturn(membro);
 
         mockMvc.perform(put("/membros/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(membroRequestDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.ativo").value(1));
+                .andExpect(jsonPath("$.ativo").value(false));
     }
 
     @Test
