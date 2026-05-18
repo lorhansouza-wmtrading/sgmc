@@ -48,7 +48,7 @@ class LocalizacaoControllerTest {
         mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
 
         pais = new Pais();
-        pais.setSigla("BRA");
+        pais.setSigla("BR");
         pais.setNome("Brasil");
         pais.setContinente("América do Sul");
 
@@ -75,7 +75,7 @@ class LocalizacaoControllerTest {
 
             mockMvc.perform(get("/localizacao/paises"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$[0].sigla").value("BRA"))
+                    .andExpect(jsonPath("$[0].sigla").value("BR"))
                     .andExpect(jsonPath("$[0].nome").value("Brasil"))
                     .andExpect(jsonPath("$[0].continente").value("América do Sul"));
         }
