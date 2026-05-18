@@ -8,6 +8,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
 import br.com.mam.sgmc.model.moto.Moto;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -16,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Data;
 
 @Entity
@@ -32,12 +34,18 @@ public class Membro {
     private String apelido;
     @Column(name = "sexo", length = 1)
     private String sexo;
-    @Column(name = "email", length = 100)
+    @Column(name = "email", length = 254)
     private String email;
-    @Column(name = "telefone", length = 20)
+    @Column(name = "telefone", length = 15) // até 15 caracteres para incluir código do país, DDD e número (Padrão Internacional E.164)
     private String telefone;
     @Column(name = "data_nascimento")
     private Date dataNascimento;
+    @Column(name = "nacionalidade", length = 50)
+    private String nacionalidade;
+    @Column(name = "naturalidade", length = 50)
+    private String naturalidade;
+    @Transient
+    private Integer idade;
     @Column(name = "batizado")
     private Integer ehBatizado;
     @Column(name = "tem_escudo")
@@ -57,11 +65,11 @@ public class Membro {
     @JoinColumn(name = "id_sede")
     private Sede sede;
 
-    @OneToMany(mappedBy = "membro")
+    @OneToMany(mappedBy = "membro", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Moto> motos;
 
-    @OneToOne(mappedBy = "membro")
+    @OneToOne(mappedBy = "membro", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Identificacao identidade;
 }
