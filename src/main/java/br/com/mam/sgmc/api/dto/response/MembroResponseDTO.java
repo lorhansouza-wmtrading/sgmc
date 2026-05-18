@@ -19,35 +19,43 @@ public class MembroResponseDTO implements Serializable {
     private String email;
     private String telefone;
     private Date dataNascimento;
+    private String nacionalidade;
+    private String naturalidade;
+    private Integer idade;
     private Boolean ehBatizado;
     private Boolean temEscudo;
     private Boolean ativo;
     private String tamanhoCamisa;
     private Date dataAdmissao;
-    private Long idCargo;
-    private Long idSede;
+    private Long idCargo; // TODO: Precisa disso? Não seria melhor passar só o nome do cargo?
+    private Long idSede; // TODO: Precisa disso? Não seria melhor passar só o nome da sede?
+    private IdentificacaoResponseDTO identidade;
 
-    public static MembroResponseDTO toResponseDTO(Membro membro){
-        MembroResponseDTO dto = new MembroResponseDTO();
-        dto.setId(membro.getId());
-        dto.setNome(membro.getNome());
-        dto.setApelido(membro.getApelido());
-        dto.setSexo(membro.getSexo());
-        dto.setEmail(membro.getEmail());
-        dto.setTelefone(membro.getTelefone());
-        dto.setDataNascimento(membro.getDataNascimento());
-        dto.setEhBatizado(getBooleanFromInt(membro.getEhBatizado()));
-        dto.setTemEscudo(getBooleanFromInt(membro.getTemEscudo()));
-        dto.setAtivo(getBooleanFromInt(membro.getAtivo()));
-        dto.setTamanhoCamisa(membro.getTamanhoCamisa());
-        dto.setDataAdmissao(membro.getDataAdmissao());
-        dto.setIdCargo(membro.getCargo() != null ? membro.getCargo().getId() : null);
-        dto.setIdSede(membro.getSede() != null ? membro.getSede().getId() : null);
-        return dto;
+    public static MembroResponseDTO toResponseDTO(Membro membro) {
+        return new MembroResponseDTO(
+                membro.getId(),
+                membro.getNome(),
+                membro.getApelido(),
+                membro.getSexo(),
+                membro.getEmail(),
+                membro.getTelefone(),
+                membro.getDataNascimento(),
+                membro.getNacionalidade(),
+                membro.getNaturalidade(),
+                membro.getIdade(),
+                getBooleanFromInt(membro.getEhBatizado()),
+                getBooleanFromInt(membro.getTemEscudo()),
+                getBooleanFromInt(membro.getAtivo()),
+                membro.getTamanhoCamisa(),
+                membro.getDataAdmissao(),
+                membro.getCargo() != null ? membro.getCargo().getId() : null,
+                membro.getSede() != null ? membro.getSede().getId() : null,
+                membro.getIdentidade() != null ? IdentificacaoResponseDTO.toResponseDTO(membro.getIdentidade()) : null);
     }
 
-    private static Boolean getBooleanFromInt(Integer value){
-        if (value == null) return false;
-        return value == 0 ? true : false;
+    private static Boolean getBooleanFromInt(Integer value) {
+        if (value == null)
+            return Boolean.FALSE;
+        return value == 0 ? Boolean.TRUE : Boolean.FALSE;
     }
 }

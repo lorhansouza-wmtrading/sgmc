@@ -32,6 +32,10 @@ public class MembroRequestDTO implements Serializable {
     @NotNull(message = "Data de nascimento do membro não preenchida.")
     @Past(message = "Data de nascimento inválida.")
     private LocalDate dataNascimento;
+    @NotBlank(message = "Nacionalidade do membro não preenchida.")
+    private String nacionalidade;
+    @NotBlank(message = "Naturalidade do membro não preenchida.")
+    private String naturalidade;
     @NotNull(message = "Batizado do membro não preenchido.")
     private Boolean ehBatizado;
     @NotNull(message = "Escudo do membro não preenchido.")
@@ -44,6 +48,7 @@ public class MembroRequestDTO implements Serializable {
     private LocalDate dataAdmissao;
     private Long idCargo;
     private Long idSede;
+    private IdentificacaoRequestDTO identidade;
     // private List<Moto> motos;
 
     public Integer getCodigoBatizado() {
