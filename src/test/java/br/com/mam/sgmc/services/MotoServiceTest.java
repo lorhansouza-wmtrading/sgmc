@@ -16,8 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.server.ResponseStatusException;
 
+import br.com.mam.sgmc.errors.ResourceNotFoundException;
 import br.com.mam.sgmc.model.Membro;
 import br.com.mam.sgmc.model.moto.CondicaoSeguro;
 import br.com.mam.sgmc.model.moto.Marca;
@@ -87,6 +87,7 @@ class MotoServiceTest {
         membro = new Membro();
         membro.setId(1L);
         membro.setNome("Teste");
+        membro.setAtivo(0); // ATIVO
     }
 
     @Test
@@ -153,7 +154,7 @@ class MotoServiceTest {
         System.out.println("Executando: Deve lançar exceção ao não encontrar placa");
         when(motoRepository.findByPlaca("XYZ9999")).thenReturn(null);
 
-        assertThrows(ResponseStatusException.class, () -> motoService.buscarPorPlaca("XYZ9999"));
+        assertThrows(ResourceNotFoundException.class, () -> motoService.buscarPorPlaca("XYZ9999"));
         System.out.println("Sucesso: Exceção lançada corretamente para placa inexistente.");
     }
 
