@@ -26,6 +26,4 @@ public class Participacao {
     @ManyToOne
     @JoinColumn(name = "moto_placa", referencedColumnName = "placa", nullable = true)
     private Moto moto;
-
-    //falta id_movimentacao
 }

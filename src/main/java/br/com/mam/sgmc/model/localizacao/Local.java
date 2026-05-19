@@ -35,7 +35,7 @@ public class Local {
     @Column(name = "codigo_postal", length = 10)
     private String codigoPostal;
     private int capacidade;
-    @Column(name = "contato", length = 20)
+    @Column(name = "contato", length = 15)
     private String contato;
     
     @ManyToOne
