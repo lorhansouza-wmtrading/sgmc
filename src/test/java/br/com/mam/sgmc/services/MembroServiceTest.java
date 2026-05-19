@@ -20,18 +20,20 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.mam.sgmc.errors.ResourceNotFoundException;
 import br.com.mam.sgmc.model.Cargo;
+import br.com.mam.sgmc.model.FichaMedica;
 import br.com.mam.sgmc.model.Identificacao;
 import br.com.mam.sgmc.model.Membro;
 import br.com.mam.sgmc.model.Sede;
 import br.com.mam.sgmc.model.enums.Ativo;
 import br.com.mam.sgmc.model.localizacao.Pais;
 import br.com.mam.sgmc.repository.CargoRepository;
+import br.com.mam.sgmc.repository.FichaMedicaRepository;
 import br.com.mam.sgmc.repository.MembroRepository;
 import br.com.mam.sgmc.repository.PaisRepository;
 import br.com.mam.sgmc.repository.SedeRepository;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("MembroService Unit Tests")
+@DisplayName("Testes Unitários - MembroService")
 class MembroServiceTest {
 
     @Mock
@@ -45,6 +47,9 @@ class MembroServiceTest {
 
     @Mock
     private PaisRepository paisRepository;
+
+    @Mock
+    private FichaMedicaRepository fichaMedicaRepository;
 
     @InjectMocks
     private MembroService membroService;
@@ -89,6 +94,14 @@ class MembroServiceTest {
         identidade.setDataEmissao(Date.valueOf(LocalDate.of(2010, 1, 1)));
         identidade.setPais(pais);
         membro.setIdentidade(identidade);
+        
+        FichaMedica fichaMedica = new FichaMedica();
+        fichaMedica.setId(1L);
+        fichaMedica.setNomePlanoSaude("Unimed");
+        fichaMedica.setNumeroCarteira("123456789");
+        fichaMedica.setTipoSanguineo("O+");
+        fichaMedica.setMembro(membro);
+        membro.setFichaMedica(fichaMedica);
     }
 
     @Test

@@ -25,15 +25,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import br.com.mam.sgmc.api.dto.request.FichaMedicaRequestDTO;
 import br.com.mam.sgmc.api.dto.request.IdentificacaoRequestDTO;
 import br.com.mam.sgmc.api.dto.request.MembroRequestDTO;
+import br.com.mam.sgmc.model.FichaMedica;
 import br.com.mam.sgmc.model.Membro;
 import br.com.mam.sgmc.model.enums.Ativo;
 import br.com.mam.sgmc.services.MembroService;
 
 @SpringBootTest
 @Transactional
-@DisplayName("MembroController Integration Tests")
+@DisplayName("Testes de Integração - MembroController")
 class MembroControllerTest {
 
     private MockMvc mockMvc;
@@ -77,12 +79,34 @@ class MembroControllerTest {
         identidadeDTO.setPaisSigla("BR");
         membroRequestDTO.setIdentidade(identidadeDTO);
 
+        FichaMedicaRequestDTO fichaMedicaDTO = new FichaMedicaRequestDTO();
+        fichaMedicaDTO.setNomePlanoSaude("Unimed");
+        fichaMedicaDTO.setNumeroCarteira("123456789");
+        fichaMedicaDTO.setTipoSanguineo("O+");
+        fichaMedicaDTO.setAlergias("Nenhuma");
+        fichaMedicaDTO.setMedicamentos("Nenhum");
+        fichaMedicaDTO.setCondicoesMedicas("Nenhuma");
+        fichaMedicaDTO.setObservacoes("Saudável");
+        membroRequestDTO.setFichaMedica(fichaMedicaDTO);
+
         membro = new Membro();
         membro.setId(1L);
         membro.setNome(membroRequestDTO.getNome());
         membro.setAtivo(Ativo.ATIVO.getCodigo());
         membro.setEhBatizado(0);
         membro.setTemEscudo(0);
+        
+        FichaMedica fichaMedica = new FichaMedica();
+        fichaMedica.setId(1L);
+        fichaMedica.setNomePlanoSaude("Unimed");
+        fichaMedica.setNumeroCarteira("123456789");
+        fichaMedica.setTipoSanguineo("O+");
+        fichaMedica.setAlergias("Nenhuma");
+        fichaMedica.setMedicamentos("Nenhum");
+        fichaMedica.setCondicoesMedicas("Nenhuma");
+        fichaMedica.setObservacoes("Saudável");
+        fichaMedica.setMembro(membro);
+        membro.setFichaMedica(fichaMedica);
     }
 
     @Test
@@ -101,6 +125,17 @@ class MembroControllerTest {
     @DisplayName("Deve retornar 400 ao tentar criar membro sem nome")
     void deveRetornar400AoCriarMembroSemNome() throws Exception {
         membroRequestDTO.setNome(null);
+
+        mockMvc.perform(post("/membros")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(membroRequestDTO)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 400 ao tentar criar membro sem ficha médica")
+    void deveRetornar400AoCriarMembroSemFichaMedica() throws Exception {
+        membroRequestDTO.setFichaMedica(null);
 
         mockMvc.perform(post("/membros")
                 .contentType(MediaType.APPLICATION_JSON)
