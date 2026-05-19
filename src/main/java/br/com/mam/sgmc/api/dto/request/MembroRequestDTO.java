@@ -49,6 +49,7 @@ public class MembroRequestDTO implements Serializable {
     private Long idCargo;
     private Long idSede;
     private IdentificacaoRequestDTO identidade;
+    private FichaMedicaRequestDTO fichaMedica;
     // private List<Moto> motos;
 
     public Integer getCodigoBatizado() {
