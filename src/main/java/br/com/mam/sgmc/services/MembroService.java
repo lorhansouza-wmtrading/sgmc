@@ -12,6 +12,7 @@ import br.com.mam.sgmc.model.Identificacao;
 import br.com.mam.sgmc.model.Membro;
 import br.com.mam.sgmc.model.enums.Ativo;
 import br.com.mam.sgmc.repository.CargoRepository;
+import br.com.mam.sgmc.repository.FichaMedicaRepository;
 import br.com.mam.sgmc.repository.SedeRepository;
 import br.com.mam.sgmc.repository.MembroRepository;
 import br.com.mam.sgmc.repository.PaisRepository;
@@ -21,11 +22,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MembroService {
     private final MembroRepository membroRepository;
+    private final FichaMedicaRepository fichaMedicaRepository;
     private final CargoRepository cargoRepository;
     private final SedeRepository sedeRepository;
     private final PaisRepository paisRepository;
 
     public Membro salvarMembro(Membro membro, Long idCargo, Long idSede, String paisSigla) {
+        Membro membroBanco = new Membro();
         if (this.membroRepository.findByNome(membro.getNome()) != null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este nome já existe.");
         }
@@ -47,8 +50,12 @@ public class MembroService {
             membro.getIdentidade().setPais(paisRepository.findById(paisSigla)
                 .orElseThrow(() -> new ResourceNotFoundException("País não encontrado com sigla: " + paisSigla)));
         }
-
-        return membroRepository.save(membro);
+        membroBanco = this.membroRepository.save(membro);
+        if(membro.getFichaMedica() != null){
+            membro.getFichaMedica().setMembro(membroBanco);
+            membroBanco.setFichaMedica(this.fichaMedicaRepository.save(membro.getFichaMedica()));
+        }
+        return membroBanco;
     }
 
     public Membro atualizarMembro(Membro membro, Long id, Long idCargo, Long idSede, String paisSigla) {
@@ -105,7 +112,13 @@ public class MembroService {
             membroExistente.setIdentidade(identidade);
         }
 
-        return this.membroRepository.save(membroExistente);
+        membroExistente = this.membroRepository.save(membro);
+        if(membro.getFichaMedica() != null){
+            membro.getFichaMedica().setMembro(membroExistente);
+            membroExistente.setFichaMedica(this.fichaMedicaRepository.save(membro.getFichaMedica()));
+        }
+
+        return membroExistente;
     }
 
     public List<Membro> listarMembros(Integer ativo) {
