@@ -112,7 +112,7 @@ public class MembroService {
             membroExistente.setIdentidade(identidade);
         }
 
-        membroExistente = this.membroRepository.save(membro);
+        membroExistente = this.membroRepository.save(membroExistente);
         if(membro.getFichaMedica() != null){
             membro.getFichaMedica().setMembro(membroExistente);
             membroExistente.setFichaMedica(this.fichaMedicaRepository.save(membro.getFichaMedica()));
