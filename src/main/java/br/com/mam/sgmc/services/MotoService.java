@@ -18,6 +18,7 @@ import br.com.mam.sgmc.repository.MarcaRepository;
 import br.com.mam.sgmc.repository.ModeloRepository;
 import br.com.mam.sgmc.repository.MotoRepository;
 import br.com.mam.sgmc.repository.SeguroRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -52,7 +53,8 @@ public class MotoService {
             seguro = this.seguroRepository.save(moto.getSeguro());
         }
 
-        CondicaoSeguro condicaoSeguro = this.condicaoSeguroRepository.findByTipo(moto.getSeguro().getCondicoesSeguro().get(0).getTipo());
+        CondicaoSeguro condicaoSeguro = this.condicaoSeguroRepository
+                .findByTipo(moto.getSeguro().getCondicoesSeguro().get(0).getTipo());
         if (condicaoSeguro == null) {
             condicaoSeguro = this.condicaoSeguroRepository.save(moto.getSeguro().getCondicoesSeguro().get(0));
         }
@@ -77,16 +79,10 @@ public class MotoService {
     }
 
     public List<Moto> listarMotos(Long idMembro, String modelo, String marca, String nomeSeguro) {
-        // Implementação simplificada de filtros usando stream para exemplo
-        // Em produção, o ideal seria usar Specification ou Query Methods
-        return motoRepository.findAll().stream()
-            .filter(m -> idMembro == null || m.getMembro().getId().equals(idMembro))
-            .filter(m -> modelo == null || m.getModelo().getNome().equalsIgnoreCase(modelo))
-            .filter(m -> marca == null || m.getModelo().getMarca().getNome().equalsIgnoreCase(marca))
-            .filter(m -> nomeSeguro == null || m.getSeguro().getNome().equalsIgnoreCase(nomeSeguro))
-            .toList();
+        return motoRepository.findWithFilters(idMembro, modelo, marca, nomeSeguro);
     }
 
+    @Transactional
     public Moto atualizarMoto(Moto moto, Long idMembro) {
 
         Moto motoEncontrada = this.buscarPorPlaca(moto.getPlaca());
@@ -110,14 +106,16 @@ public class MotoService {
             seguro = this.seguroRepository.save(moto.getSeguro());
         }
 
-        CondicaoSeguro condicaoSeguro = this.condicaoSeguroRepository.findByTipo(moto.getSeguro().getCondicoesSeguro().get(0).getTipo());
+        CondicaoSeguro condicaoSeguro = this.condicaoSeguroRepository
+                .findByTipo(moto.getSeguro().getCondicoesSeguro().get(0).getTipo());
         if (condicaoSeguro == null) {
             condicaoSeguro = this.condicaoSeguroRepository.save(moto.getSeguro().getCondicoesSeguro().get(0));
         }
 
         Membro membro = this.membroService.buscarPorId(idMembro);
         if (membro == null) {
-            throw new ResourceNotFoundException("Membro não encontrado! Moto não pode ser associada a um membro que não existe.");
+            throw new ResourceNotFoundException(
+                    "Membro não encontrado! Moto não pode ser associada a um membro que não existe.");
         }
         if (membro.getAtivo().equals(br.com.mam.sgmc.model.enums.Ativo.INATIVO.getCodigo())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Moto não pode ser associada a um membro inativo");
@@ -128,7 +126,20 @@ public class MotoService {
         motoEncontrada.setSeguro(seguro);
         motoEncontrada.setModelo(modelo);
         motoEncontrada.setMembro(membro);
-        
+
         return this.motoRepository.save(motoEncontrada);
+    }
+
+    @Transactional
+    public void deletarMoto(Long idMembro, String placa) {
+        Moto motoEncontrada = this.buscarPorPlaca(placa);
+        if (motoEncontrada == null) {
+            throw new ResourceNotFoundException("Moto não encontrada");
+        }
+        if (!motoEncontrada.getMembro().getId().equals(idMembro)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Moto não pertence ao membro");
+        }
+
+        this.motoRepository.deleteByPlaca(placa);
     }
 }
