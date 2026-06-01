@@ -80,7 +80,7 @@ public class Membro {
     @JsonManagedReference
     private List<Moto> motos;
 
-    @OneToMany(mappedBy = "membro", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "pk.membro", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Participacao> participacoes;
 }
