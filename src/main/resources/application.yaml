@@ -4,8 +4,11 @@ spring:
             - testH2
     application:
         name: sgmc-back
-    security:
+    security:   
         oauth2:
+            resourceserver:
+                jwt:
+                    issuer-uri: http://localhost:8089/realms/sgmc         
             client:
                 registration:
                     sgmc:
