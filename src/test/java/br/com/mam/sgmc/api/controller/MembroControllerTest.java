@@ -3,6 +3,9 @@ package br.com.mam.sgmc.api.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -11,16 +14,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.transaction.annotation.Transactional;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -33,15 +31,13 @@ import br.com.mam.sgmc.model.Membro;
 import br.com.mam.sgmc.model.enums.Ativo;
 import br.com.mam.sgmc.services.MembroService;
 
-@SpringBootTest
-@Transactional
+@WebMvcTest(MembroController.class)
+@Import(br.com.mam.sgmc.config.SecurityConfig.class)
 @DisplayName("Testes de Integração - MembroController")
 class MembroControllerTest {
 
-    private MockMvc mockMvc;
-
     @Autowired
-    private WebApplicationContext context;
+    private MockMvc mockMvc;
 
     @MockitoBean
     private MembroService membroService;
@@ -54,7 +50,6 @@ class MembroControllerTest {
     @BeforeEach
     void setUp() {
         objectMapper.registerModule(new JavaTimeModule());
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
 
         membroRequestDTO = new MembroRequestDTO();
         membroRequestDTO.setNome("João Silva");
@@ -95,7 +90,7 @@ class MembroControllerTest {
         membro.setAtivo(Ativo.ATIVO.getCodigo());
         membro.setEhBatizado(0);
         membro.setTemEscudo(0);
-        
+
         FichaMedica fichaMedica = new FichaMedica();
         fichaMedica.setId(1L);
         fichaMedica.setNomePlanoSaude("Unimed");
@@ -115,6 +110,7 @@ class MembroControllerTest {
         when(membroService.salvarMembro(any(Membro.class), any(), any(), any())).thenReturn(membro);
 
         mockMvc.perform(post("/membros")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(membroRequestDTO)))
                 .andExpect(status().isCreated())
@@ -127,6 +123,7 @@ class MembroControllerTest {
         membroRequestDTO.setNome(null);
 
         mockMvc.perform(post("/membros")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(membroRequestDTO)))
                 .andExpect(status().isBadRequest());
@@ -138,6 +135,7 @@ class MembroControllerTest {
         membroRequestDTO.setFichaMedica(null);
 
         mockMvc.perform(post("/membros")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(membroRequestDTO)))
                 .andExpect(status().isBadRequest());
@@ -148,7 +146,8 @@ class MembroControllerTest {
     void deveListarMembros() throws Exception {
         when(membroService.listarMembros(null)).thenReturn(List.of(membro));
 
-        mockMvc.perform(get("/membros"))
+        mockMvc.perform(get("/membros")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].nome").value("João Silva"))
                 .andExpect(jsonPath("$[0].ativo").value(true));
@@ -159,7 +158,8 @@ class MembroControllerTest {
     void deveListarMembrosAtivos() throws Exception {
         when(membroService.listarMembros(0)).thenReturn(List.of(membro));
 
-        mockMvc.perform(get("/membros?ativo=0"))
+        mockMvc.perform(get("/membros?ativo=0")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].ativo").value(true));
     }
@@ -169,7 +169,8 @@ class MembroControllerTest {
     void deveBuscarMembroPorId() throws Exception {
         when(membroService.buscarPorId(1L)).thenReturn(membro);
 
-        mockMvc.perform(get("/membros/1"))
+        mockMvc.perform(get("/membros/1")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nome").value("João Silva"));
     }
@@ -178,12 +179,13 @@ class MembroControllerTest {
     @DisplayName("Deve inativar um membro via PUT")
     void deveInativarMembroViaPut() throws Exception {
         membroRequestDTO.setAtivo(false);
-        
+
         membro.setAtivo(Ativo.INATIVO.getCodigo());
 
         when(membroService.atualizarMembro(any(Membro.class), eq(1L), any(), any(), any())).thenReturn(membro);
 
         mockMvc.perform(put("/membros/1")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(membroRequestDTO)))
                 .andExpect(status().isOk())
@@ -195,7 +197,8 @@ class MembroControllerTest {
     void deveRetornar404AoBuscarIdInexistente() throws Exception {
         when(membroService.buscarPorId(99L)).thenThrow(new br.com.mam.sgmc.errors.ResourceNotFoundException("Não encontrado"));
 
-        mockMvc.perform(get("/membros/99"))
+        mockMvc.perform(get("/membros/99")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT")))
                 .andExpect(status().isNotFound());
     }
 }

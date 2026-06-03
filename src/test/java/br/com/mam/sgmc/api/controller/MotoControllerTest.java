@@ -3,6 +3,7 @@ package br.com.mam.sgmc.api.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -18,14 +19,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import br.com.mam.sgmc.config.SecurityConfig;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,15 +41,13 @@ import br.com.mam.sgmc.model.moto.Moto;
 import br.com.mam.sgmc.model.moto.Seguro;
 import br.com.mam.sgmc.services.MotoService;
 
-@SpringBootTest
-@Transactional
+@WebMvcTest(MotoController.class)
+@Import(SecurityConfig.class)
 @DisplayName("MotoController Comprehensive Tests")
 class MotoControllerTest {
 
-    private MockMvc mockMvc;
-
     @Autowired
-    private WebApplicationContext context;
+    private MockMvc mockMvc;
 
     @MockitoBean
     private MotoService motoService;
@@ -58,65 +56,71 @@ class MotoControllerTest {
 
     private MotoRequestDTO motoRequestDTO;
     private Moto moto;
-    private Membro membro;
 
     @BeforeEach
     void setUp() {
         objectMapper.registerModule(new JavaTimeModule());
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
 
         motoRequestDTO = new MotoRequestDTO();
         motoRequestDTO.setPlaca("ABC1234");
         motoRequestDTO.setModelo("CB 500");
         motoRequestDTO.setMarca("Honda");
-        motoRequestDTO.setAno(2022);
         motoRequestDTO.setCor("Preta");
+        motoRequestDTO.setAno(2022);
         motoRequestDTO.setIdMembro(1L);
         motoRequestDTO.setNomeSeguradora("Porto Seguro");
-        motoRequestDTO.setTipoSeguro("Total");
-        motoRequestDTO.setValidadeSeguro(Instant.now());
-        motoRequestDTO.setValorFranquia(1000.0f);
+        motoRequestDTO.setTipoSeguro("Completo");
+        motoRequestDTO.setValidadeSeguro(Instant.parse("2026-12-31T23:59:59Z"));
+        motoRequestDTO.setValorFranquia(1500.0f);
 
-        membro = new Membro();
+        Membro membro = new Membro();
         membro.setId(1L);
-        membro.setNome("Teste");
+        membro.setNome("João Silva");
         membro.setAtivo(Ativo.ATIVO.getCodigo());
 
         Marca marca = new Marca();
+        marca.setId(1L);
         marca.setNome("Honda");
 
         Modelo modelo = new Modelo();
+        modelo.setId(1L);
         modelo.setNome("CB 500");
+        modelo.setCilindrada(500);
         modelo.setMarca(marca);
 
         CondicaoSeguro condicaoSeguro = new CondicaoSeguro();
-        condicaoSeguro.setTipo("Total");
-        condicaoSeguro.setValidadeFim(Instant.now());
+        condicaoSeguro.setId(1L);
+        condicaoSeguro.setTipo("Completo");
+        condicaoSeguro.setValidadeFim(Instant.parse("2026-12-31T23:59:59Z"));
+        condicaoSeguro.setValorFranquia(1500.0f);
 
         Seguro seguro = new Seguro();
+        seguro.setId(1L);
         seguro.setNome("Porto Seguro");
         seguro.setCondicoesSeguro(List.of(condicaoSeguro));
+        condicaoSeguro.setSeguro(seguro);
 
         moto = new Moto();
         moto.setPlaca("ABC1234");
-        moto.setAno(2022);
-        moto.setCor("Preta");
         moto.setModelo(modelo);
-        moto.setSeguro(seguro);
+        moto.setCor("Preta");
+        moto.setAno(2022);
         moto.setMembro(membro);
+        moto.setSeguro(seguro);
     }
 
     @Nested
-    @DisplayName("1. Criação de Moto (POST /motos)")
+    @DisplayName("1. Criação de Motos (POST /motos)")
     class CriacaoMoto {
 
         @Test
-        @DisplayName("Deve criar moto com todos os campos válidos")
+        @DisplayName("Deve criar uma moto com sucesso")
         void deveCriarMotoComSucesso() throws Exception {
             System.out.println("Executando: POST /motos - Sucesso");
             when(motoService.salvarMoto(any(Moto.class), eq(1L))).thenReturn(moto);
 
             mockMvc.perform(post("/motos")
+                    .with(jwt().authorities(() -> "ROLE_PRESIDENT"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(motoRequestDTO)))
                     .andExpect(status().isCreated())
@@ -124,25 +128,27 @@ class MotoControllerTest {
         }
 
         @Test
-        @DisplayName("Deve retornar 400 ao tentar criar moto sem placa (NotBlank)")
+        @DisplayName("Deve retornar 400 ao criar moto sem placa")
         void deveRetornar400AoCriarMotoSemPlaca() throws Exception {
-            System.out.println("Executando: POST /motos - Placa ausente");
+            System.out.println("Executando: POST /motos - Sem placa");
             motoRequestDTO.setPlaca(null);
 
             mockMvc.perform(post("/motos")
+                    .with(jwt().authorities(() -> "ROLE_PRESIDENT"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(motoRequestDTO)))
                     .andExpect(status().isBadRequest());
         }
 
         @Test
-        @DisplayName("Deve retornar 409 ao tentar criar moto com placa duplicada")
+        @DisplayName("Deve retornar 409 ao criar moto com placa duplicada")
         void deveRetornar409AoCriarMotoComPlacaDuplicada() throws Exception {
             System.out.println("Executando: POST /motos - Placa duplicada");
             when(motoService.salvarMoto(any(Moto.class), eq(1L)))
-                .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Placa já cadastrada"));
+                .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Moto com essa placa já existe"));
 
             mockMvc.perform(post("/motos")
+                    .with(jwt().authorities(() -> "ROLE_PRESIDENT"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(motoRequestDTO)))
                     .andExpect(status().isConflict());
@@ -156,6 +162,7 @@ class MotoControllerTest {
                 .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Moto não pode ser associada a um membro inativo"));
 
             mockMvc.perform(post("/motos")
+                    .with(jwt().authorities(() -> "ROLE_PRESIDENT"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(motoRequestDTO)))
                     .andExpect(status().isConflict());
@@ -172,10 +179,11 @@ class MotoControllerTest {
             System.out.println("Executando: GET /motos - Listar todas");
             when(motoService.listarMotos(any(), any(), any(), any())).thenReturn(List.of(moto));
 
-            mockMvc.perform(get("/motos"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$[0].placa").value("ABC1234"))
-                    .andExpect(jsonPath("$[0].modelo").value("CB 500"));
+            mockMvc.perform(get("/motos")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].placa").value("ABC1234"))
+                .andExpect(jsonPath("$[0].modelo").value("CB 500"));
         }
 
         @Test
@@ -184,9 +192,10 @@ class MotoControllerTest {
             System.out.println("Executando: GET /motos?idMembro=1 - Sucesso");
             when(motoService.listarMotos(eq(1L), any(), any(), any())).thenReturn(List.of(moto));
 
-            mockMvc.perform(get("/motos?idMembro=1"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$[0].idMembro").value(1L));
+            mockMvc.perform(get("/motos?idMembro=1")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].idMembro").value(1));
         }
 
         @Test
@@ -195,9 +204,10 @@ class MotoControllerTest {
             System.out.println("Executando: GET /motos?marca=Honda - Sucesso");
             when(motoService.listarMotos(any(), any(), eq("Honda"), any())).thenReturn(List.of(moto));
 
-            mockMvc.perform(get("/motos?marca=Honda"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$[0].marca").value("Honda"));
+            mockMvc.perform(get("/motos?marca=Honda")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].marca").value("Honda"));
         }
     }
 
@@ -211,10 +221,11 @@ class MotoControllerTest {
             System.out.println("Executando: GET /motos/ABC1234 - Sucesso");
             when(motoService.buscarPorPlaca("ABC1234")).thenReturn(moto);
 
-            mockMvc.perform(get("/motos/ABC1234"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.placa").value("ABC1234"))
-                    .andExpect(jsonPath("$.modelo").value("CB 500"));
+            mockMvc.perform(get("/motos/ABC1234")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.placa").value("ABC1234"))
+                .andExpect(jsonPath("$.modelo").value("CB 500"));
         }
 
         @Test
@@ -224,7 +235,8 @@ class MotoControllerTest {
             when(motoService.buscarPorPlaca("XYZ9999"))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Moto não encontrada"));
 
-            mockMvc.perform(get("/motos/XYZ9999"))
+            mockMvc.perform(get("/motos/XYZ9999")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT")))
                     .andExpect(status().isNotFound());
         }
     }
@@ -240,6 +252,7 @@ class MotoControllerTest {
             when(motoService.atualizarMoto(any(Moto.class), eq(1L))).thenReturn(moto);
 
             mockMvc.perform(put("/motos/ABC1234")
+                    .with(jwt().authorities(() -> "ROLE_PRESIDENT"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(motoRequestDTO)))
                     .andExpect(status().isOk())
@@ -254,6 +267,7 @@ class MotoControllerTest {
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Membro não encontrado"));
 
             mockMvc.perform(put("/motos/ABC1234")
+                    .with(jwt().authorities(() -> "ROLE_PRESIDENT"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(motoRequestDTO)))
                     .andExpect(status().isNotFound());
@@ -267,6 +281,7 @@ class MotoControllerTest {
                 .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Moto não pode ser associada a um membro inativo"));
 
             mockMvc.perform(put("/motos/ABC1234")
+                    .with(jwt().authorities(() -> "ROLE_PRESIDENT"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(motoRequestDTO)))
                     .andExpect(status().isConflict());
