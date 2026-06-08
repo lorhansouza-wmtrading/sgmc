@@ -25,7 +25,6 @@ public class SedeService {
     private final UfRepository ufRepository;
 
     public Sede salvarSede(Sede sede, String nomeCidade, String ufSigla, String nomePais) {
-        // TODO: Implementar busca de cidade, UF e país e criar caso não existam.
         Cidade cidadeEncontrada = this.cidadeRepository.findByNome(nomeCidade);
         if (cidadeEncontrada == null) {
             Uf ufEncontrada = this.ufRepository.findByUfSiglaIgnoreCase(ufSigla);
