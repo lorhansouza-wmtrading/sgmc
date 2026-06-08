@@ -110,5 +110,14 @@ public class EventoController implements EventoControllerOpenAPI {
                 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @GetMapping("/{id}/inscricoes")
+    public ResponseEntity<List<InscricaoResponseDTO>> listarInscritos(@PathVariable Long id) {
+        Evento evento = this.eventoService.buscarPorId(id);
+        List<InscricaoResponseDTO> response = evento.getInscricoes().stream()
+                .map(InscricaoResponseDTO::toResponseDTO)
+                .toList();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }
 
