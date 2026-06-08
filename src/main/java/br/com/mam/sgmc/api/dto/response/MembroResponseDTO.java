@@ -27,8 +27,8 @@ public class MembroResponseDTO implements Serializable {
     private Boolean ativo;
     private String tamanhoCamisa;
     private Date dataAdmissao;
-    private Long idCargo; // TODO: Precisa disso? Não seria melhor passar só o nome do cargo?
-    private Long idSede; // TODO: Precisa disso? Não seria melhor passar só o nome da sede?
+    private Long idCargo;
+    private Long idSede;
     private IdentificacaoResponseDTO identidade;
     private FichaMedicaResponseDTO fichaMedica;
 
