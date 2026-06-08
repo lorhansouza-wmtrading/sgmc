@@ -18,8 +18,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/swagger-ui/**", "/v3/**").permitAll()
-                .requestMatchers("/api/**").authenticated()
-                .anyRequest().permitAll())
+                .anyRequest().authenticated())
             .oauth2ResourceServer(oauth -> oauth
                 .jwt(jwt -> jwt
                     .jwtAuthenticationConverter(jwtAuthorityConverter())));
