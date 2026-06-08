@@ -12,9 +12,9 @@ Este relatório apresenta uma análise atualizada da cobertura dos requisitos fu
 | **RF02** | Controle de Acesso Corporativo | Restrição de telas e ações por papel (*Role*) | 🟢 **Atendido** | Controle de acessos integrado no `SecurityConfig` com validação de tokens e perfis. |
 | **RF03** | Manter Cadastro de Membros | CRUD completo dos motociclistas integrantes | ⚠️ **Parcialmente Atendido** | Implementado via inativação lógica (`DELETE` altera status para `INATIVO`). Estrutura básica funcional. |
 | **RF04** | Vincular Cargo/Hierarquia | Associar cada membro à sua respectiva patente | 🟢 **Atendido** | Relação `@ManyToOne` funcional entre `Membro` e `Cargo` com validação de existência no serviço. |
-| **RF05** | Manter Motocicletas | Cadastrar e vincular veículos ao perfil de um membro | 🟢 **Atendido** | Mapeamento funcional e endpoint de exclusão (`DELETE /motos/{idMembro}/{placa}`) validando propriedade e cobertura completa de testes. |
-| **RF06** | Gerenciar Eventos | Agendamento, edição e cancelamento de eventos | 🟢 **Atendido** | Implementados Edição (`PUT`) e Cancelamento (`DELETE`) de eventos com cobertura de testes unitários e de integração. |
-| **RF07** | Registrar Inscrição | Registro e controle de inscrição de membros em eventos | 🟢 **Atendido** | Endpoint `POST /eventos/{id}/inscricoes` funcional para matricular membros em eventos. |
+| **RF05** | Manter Motocicletas | Cadastrar e vincular veículos ao perfil de um membro | 🟢 **Atendido** | Mapeamento funcional e endpoint de exclusão (`DELETE /api/motos/{idMembro}/{placa}`) validando propriedade e cobertura completa de testes. |
+| **RF06** | Gerenciar Eventos | Agendamento, edição e cancelamento de eventos | 🟢 **Atendido** | Implementados Edição (`PUT`) e Cancelamento (`DELETE`) de eventos expostos em `/api/eventos` com cobertura de testes. |
+| **RF07** | Registrar Inscrição | Registro e controle de inscrição de membros em eventos | 🟢 **Atendido** | Endpoints `POST /api/eventos/{id}/inscricoes` e `GET /api/eventos/{id}/inscricoes` funcionais. |
 
 ---
 
@@ -60,4 +60,5 @@ Este relatório apresenta uma análise atualizada da cobertura dos requisitos fu
 * **Descrição:** Realizar a inscrição de membros nos eventos, vinculando moto e data de inscrição.
 * **Análise:**
   * **Status:** Totalmente Coberto.
-  * Implementado o endpoint `POST /eventos/{id}/inscricoes` permitindo a associação através do modelo `Inscricao` com validações de propriedade do veículo.
+  * Implementado o endpoint `POST /api/eventos/{id}/inscricoes` permitindo a associação através do modelo `Inscricao` com validações de propriedade do veículo.
+  * Implementado o endpoint `GET /api/eventos/{id}/inscricoes` que permite listar todas as inscrições efetuadas e confirmadas em um evento para auditoria de presença.
