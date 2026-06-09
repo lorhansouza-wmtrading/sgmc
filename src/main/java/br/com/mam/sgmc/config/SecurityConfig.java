@@ -13,7 +13,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http) {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth

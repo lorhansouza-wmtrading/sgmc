@@ -30,6 +30,7 @@ import br.com.mam.sgmc.repository.CargoRepository;
 import br.com.mam.sgmc.repository.FichaMedicaRepository;
 import br.com.mam.sgmc.repository.MembroRepository;
 import br.com.mam.sgmc.repository.PaisRepository;
+import br.com.mam.sgmc.repository.PosseRepository;
 import br.com.mam.sgmc.repository.SedeRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,6 +51,9 @@ class MembroServiceTest {
 
     @Mock
     private FichaMedicaRepository fichaMedicaRepository;
+
+    @Mock
+    private PosseRepository posseRepository;
 
     @InjectMocks
     private MembroService membroService;
@@ -121,6 +125,21 @@ class MembroServiceTest {
     }
 
     @Test
+    @DisplayName("Deve salvar um membro e criar registro de Posse quando idCargo for informado")
+    void deveSalvarMembroECriarPosse() {
+        when(membroRepository.findByNome(any())).thenReturn(null);
+        when(sedeRepository.findById(1L)).thenReturn(Optional.of(sede));
+        when(paisRepository.findById("BR")).thenReturn(Optional.of(pais));
+        when(membroRepository.save(any(Membro.class))).thenReturn(membro);
+        when(cargoRepository.findById(1L)).thenReturn(Optional.of(cargo));
+
+        Membro salvo = membroService.salvarMembro(membro, 1L, 1L, "BR");
+
+        assertNotNull(salvo);
+        verify(posseRepository).save(any());
+    }
+
+    @Test
     @DisplayName("Deve lançar exceção ao salvar membro com nome existente")
     void deveLancarExcecaoAoSalvarMembroComNomeExistente() {
         when(membroRepository.findByNome("João Silva")).thenReturn(membro);
@@ -175,6 +194,22 @@ class MembroServiceTest {
 
         assertNotNull(atualizado);
         verify(membroRepository).save(any(Membro.class));
+    }
+
+    @Test
+    @DisplayName("Deve atualizar um membro e registrar Posse se idCargo for novo")
+    void deveAtualizarMembroERegistrarPosse() {
+        when(membroRepository.findById(1L)).thenReturn(Optional.of(membro));
+        when(sedeRepository.findById(1L)).thenReturn(Optional.of(sede));
+        when(paisRepository.findById("BR")).thenReturn(Optional.of(pais));
+        when(membroRepository.save(any(Membro.class))).thenReturn(membro);
+        when(cargoRepository.findById(1L)).thenReturn(Optional.of(cargo));
+        when(posseRepository.existsById(any())).thenReturn(false);
+
+        Membro atualizado = membroService.atualizarMembro(membro, 1L, 1L, 1L, "BR");
+
+        assertNotNull(atualizado);
+        verify(posseRepository).save(any());
     }
 
     @Test

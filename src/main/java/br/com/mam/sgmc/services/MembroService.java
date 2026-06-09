@@ -1,5 +1,6 @@
 package br.com.mam.sgmc.services;
 
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -11,7 +12,11 @@ import br.com.mam.sgmc.errors.ResourceNotFoundException;
 import br.com.mam.sgmc.model.Identificacao;
 import br.com.mam.sgmc.model.Membro;
 import br.com.mam.sgmc.model.enums.Ativo;
+import br.com.mam.sgmc.model.Cargo;
+import br.com.mam.sgmc.model.Posse;
+import br.com.mam.sgmc.model.pk.PossePk;
 import br.com.mam.sgmc.repository.CargoRepository;
+import br.com.mam.sgmc.repository.PosseRepository;
 import br.com.mam.sgmc.repository.FichaMedicaRepository;
 import br.com.mam.sgmc.repository.SedeRepository;
 import br.com.mam.sgmc.repository.MembroRepository;
@@ -23,12 +28,12 @@ import lombok.RequiredArgsConstructor;
 public class MembroService {
     private final MembroRepository membroRepository;
     private final FichaMedicaRepository fichaMedicaRepository;
-    private final CargoRepository cargoRepository;
     private final SedeRepository sedeRepository;
     private final PaisRepository paisRepository;
+    private final CargoRepository cargoRepository;
+    private final PosseRepository posseRepository;
 
     public Membro salvarMembro(Membro membro, Long idCargo, Long idSede, String paisSigla) {
-        Membro membroBanco = new Membro();
         if (this.membroRepository.findByNome(membro.getNome()) != null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este nome já existe.");
         }
@@ -47,11 +52,24 @@ public class MembroService {
             membro.getIdentidade().setPais(paisRepository.findById(paisSigla)
                 .orElseThrow(() -> new ResourceNotFoundException("País não encontrado com sigla: " + paisSigla)));
         }
-        membroBanco = this.membroRepository.save(membro);
+        Membro membroBanco = this.membroRepository.save(membro);
         if(membro.getFichaMedica() != null){
             membro.getFichaMedica().setMembro(membroBanco);
             membroBanco.setFichaMedica(this.fichaMedicaRepository.save(membro.getFichaMedica()));
         }
+
+        if (idCargo != null) {
+            Cargo cargo = cargoRepository.findById(idCargo)
+                .orElseThrow(() -> new ResourceNotFoundException("Cargo não encontrado com ID: " + idCargo));
+            
+            PossePk possePk = new PossePk(cargo, membroBanco);
+            Posse posse = new Posse();
+            posse.setPossePk(possePk);
+            posse.setDataInicio(membroBanco.getDataAdmissao() != null ? membroBanco.getDataAdmissao() : Date.valueOf(LocalDate.now()));
+            
+            this.posseRepository.save(posse);
+        }
+
         return membroBanco;
     }
 
@@ -107,6 +125,19 @@ public class MembroService {
         if(membro.getFichaMedica() != null){
             membro.getFichaMedica().setMembro(membroExistente);
             membroExistente.setFichaMedica(this.fichaMedicaRepository.save(membro.getFichaMedica()));
+        }
+
+        if (idCargo != null) {
+            Cargo cargo = cargoRepository.findById(idCargo)
+                .orElseThrow(() -> new ResourceNotFoundException("Cargo não encontrado com ID: " + idCargo));
+            
+            PossePk possePk = new PossePk(cargo, membroExistente);
+            if (!this.posseRepository.existsById(possePk)) {
+                Posse posse = new Posse();
+                posse.setPossePk(possePk);
+                posse.setDataInicio(Date.valueOf(LocalDate.now()));
+                this.posseRepository.save(posse);
+            }
         }
 
         return membroExistente;
