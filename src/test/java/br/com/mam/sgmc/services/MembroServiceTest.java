@@ -264,4 +264,112 @@ class MembroServiceTest {
         Integer idade = membroService.calcularIdade(membro);
         assertEquals(30, idade);
     }
+
+    @Test
+    @DisplayName("Deve atualizar membro alterando status de ativo para inativo")
+    void deveAtualizarMembroAlterandoStatusParaInativo() {
+        Membro membroAtualizado = new Membro();
+        membroAtualizado.setNome("João Silva");
+        membroAtualizado.setApelido("João");
+        membroAtualizado.setSexo("M");
+        membroAtualizado.setEmail("joao@email.com");
+        membroAtualizado.setTelefone("11999999999");
+        membroAtualizado.setDataNascimento(Date.valueOf(LocalDate.of(1990, 1, 1)));
+        membroAtualizado.setEhBatizado(0);
+        membroAtualizado.setTemEscudo(0);
+        membroAtualizado.setAtivo(Ativo.INATIVO.getCodigo());
+        membroAtualizado.setTamanhoCamisa("G");
+        membroAtualizado.setDataAdmissao(Date.valueOf(LocalDate.now()));
+
+        when(membroRepository.findById(1L)).thenReturn(java.util.Optional.of(membro));
+        when(membroRepository.save(any(Membro.class))).thenReturn(membro);
+
+        Membro resultado = membroService.atualizarMembro(membroAtualizado, 1L, null, null, null);
+
+        assertNotNull(resultado);
+        assertEquals(Ativo.INATIVO.getCodigo(), resultado.getAtivo());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao atualizar membro no Brasil sem CPF")
+    void deveLancarExcecaoAoAtualizarMembroNoBrasilSemCPF() {
+        Membro membroAtualizado = new Membro();
+        membroAtualizado.setNome("João Silva");
+        membroAtualizado.setApelido("João");
+        membroAtualizado.setSexo("M");
+        membroAtualizado.setEmail("joao@email.com");
+        membroAtualizado.setTelefone("11999999999");
+        membroAtualizado.setDataNascimento(Date.valueOf(LocalDate.of(1990, 1, 1)));
+        membroAtualizado.setEhBatizado(0);
+        membroAtualizado.setTemEscudo(0);
+        membroAtualizado.setAtivo(0);
+        membroAtualizado.setTamanhoCamisa("G");
+        membroAtualizado.setDataAdmissao(Date.valueOf(LocalDate.now()));
+
+        Identificacao identidade = new Identificacao();
+        identidade.setTipo("RG");
+        identidade.setIdentidade("123456789");
+        identidade.setEmissor("SSP");
+        identidade.setDataEmissao(Date.valueOf(LocalDate.of(2010, 1, 1)));
+        membroAtualizado.setIdentidade(identidade);
+
+        when(membroRepository.findById(1L)).thenReturn(java.util.Optional.of(membro));
+
+        assertThrows(ResponseStatusException.class, () ->
+            membroService.atualizarMembro(membroAtualizado, 1L, null, null, "BR")
+        );
+    }
+
+    @Test
+    @DisplayName("Deve atualizar membro removendo cargo quando idCargo é null")
+    void deveAtualizarMembroRemovendoCargoQuandoIdCargoEhNull() {
+        membro.setCargo(cargo);
+
+        Membro membroAtualizado = new Membro();
+        membroAtualizado.setNome("João Silva");
+        membroAtualizado.setApelido("João");
+        membroAtualizado.setSexo("M");
+        membroAtualizado.setEmail("joao@email.com");
+        membroAtualizado.setTelefone("11999999999");
+        membroAtualizado.setDataNascimento(Date.valueOf(LocalDate.of(1990, 1, 1)));
+        membroAtualizado.setEhBatizado(0);
+        membroAtualizado.setTemEscudo(0);
+        membroAtualizado.setAtivo(0);
+        membroAtualizado.setTamanhoCamisa("G");
+        membroAtualizado.setDataAdmissao(Date.valueOf(LocalDate.now()));
+
+        when(membroRepository.findById(1L)).thenReturn(java.util.Optional.of(membro));
+        when(membroRepository.save(any(Membro.class))).thenReturn(membro);
+
+        Membro resultado = membroService.atualizarMembro(membroAtualizado, 1L, null, null, null);
+
+        assertNotNull(resultado);
+        assertNull(resultado.getCargo());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao inativar membro com ID inexistente")
+    void deveLancarExcecaoAoInativarMembroComIdInexistente() {
+        when(membroRepository.findById(99L)).thenReturn(java.util.Optional.empty());
+
+        assertThrows(br.com.mam.sgmc.errors.ResourceNotFoundException.class, () ->
+            membroService.inativarMembro(99L)
+        );
+    }
+
+    @Test
+    @DisplayName("Deve salvar membro com ficha médica")
+    void deveSalvarMembroComFichaMedica() {
+        when(membroRepository.findByNome(any())).thenReturn(null);
+        when(cargoRepository.findById(1L)).thenReturn(java.util.Optional.of(cargo));
+        when(sedeRepository.findById(1L)).thenReturn(java.util.Optional.of(sede));
+        when(paisRepository.findById("BR")).thenReturn(java.util.Optional.of(pais));
+        when(membroRepository.save(any(Membro.class))).thenReturn(membro);
+        when(fichaMedicaRepository.save(any())).thenReturn(membro.getFichaMedica());
+
+        Membro salvo = membroService.salvarMembro(membro, 1L, 1L, "BR");
+
+        assertNotNull(salvo);
+        verify(fichaMedicaRepository).save(any());
+    }
 }

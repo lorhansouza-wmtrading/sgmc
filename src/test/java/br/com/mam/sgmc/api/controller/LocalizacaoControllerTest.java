@@ -142,4 +142,15 @@ class LocalizacaoControllerTest {
                     .andExpect(status().isNotFound());
         }
     }
+
+    @Nested
+    @DisplayName("4. Testes de Segurança")
+    class SegurancaLocalizacao {
+        @Test
+        @DisplayName("Deve retornar 401 ao acessar sem autenticação")
+        void deveRetornar401SemAutenticacao() throws Exception {
+            mockMvc.perform(get("/localizacao/paises"))
+                    .andExpect(status().isUnauthorized());
+        }
+    }
 }

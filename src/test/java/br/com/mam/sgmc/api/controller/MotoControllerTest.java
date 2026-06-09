@@ -7,6 +7,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -276,7 +277,6 @@ class MotoControllerTest {
         @Test
         @DisplayName("Deve retornar 409 ao tentar transferir para membro inativo")
         void deveRetornar409AoTransferirMembroInativo() throws Exception {
-            System.out.println("Executando: PUT /motos/ABC1234 - Transferência Membro Inativo");
             when(motoService.atualizarMoto(any(Moto.class), eq(1L)))
                 .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Moto não pode ser associada a um membro inativo"));
 
@@ -285,6 +285,55 @@ class MotoControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(motoRequestDTO)))
                     .andExpect(status().isConflict());
+        }
+    }
+
+    @Nested
+    @DisplayName("5. Deleção de Moto (DELETE /motos/{idMembro}/{placa})")
+    class DelecaoMoto {
+
+        @Test
+        @DisplayName("Deve deletar uma moto com sucesso")
+        void deveDeletarMotoComSucesso() throws Exception {
+            org.mockito.Mockito.doNothing().when(motoService).deletarMoto(1L, "ABC1234");
+
+            mockMvc.perform(delete("/motos/1/ABC1234")
+                    .with(jwt().authorities(() -> "ROLE_PRESIDENT")))
+                    .andExpect(status().isNoContent());
+        }
+
+        @Test
+        @DisplayName("Deve retornar 404 ao deletar moto com placa inexistente")
+        void deveRetornar404AoDeletarMotoComPlacaInexistente() throws Exception {
+            org.mockito.Mockito.doThrow(new br.com.mam.sgmc.errors.ResourceNotFoundException("Moto não encontrada"))
+                .when(motoService).deletarMoto(1L, "XYZ0000");
+
+            mockMvc.perform(delete("/motos/1/XYZ0000")
+                    .with(jwt().authorities(() -> "ROLE_PRESIDENT")))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("Deve retornar 409 ao deletar moto que não pertence ao membro")
+        void deveRetornar409AoDeletarMotoQueNaoPertenceAoMembro() throws Exception {
+            org.mockito.Mockito.doThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Moto não pertence ao membro"))
+                .when(motoService).deletarMoto(99L, "ABC1234");
+
+            mockMvc.perform(delete("/motos/99/ABC1234")
+                    .with(jwt().authorities(() -> "ROLE_PRESIDENT")))
+                    .andExpect(status().isConflict());
+        }
+    }
+
+    @Nested
+    @DisplayName("6. Testes de Segurança")
+    class SegurancaMoto {
+
+        @Test
+        @DisplayName("Deve retornar 401 ao acessar sem autenticação")
+        void deveRetornar401SemAutenticacao() throws Exception {
+            mockMvc.perform(get("/motos"))
+                    .andExpect(status().isUnauthorized());
         }
     }
 }

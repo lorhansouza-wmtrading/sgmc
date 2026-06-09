@@ -201,4 +201,32 @@ class MembroControllerTest {
                 .with(jwt().authorities(() -> "ROLE_PRESIDENT")))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    @DisplayName("Deve inativar membro com sucesso via PATCH")
+    void deveInativarMembroComSucessoViaPatch() throws Exception {
+        org.mockito.Mockito.doNothing().when(membroService).inativarMembro(1L);
+
+        mockMvc.perform(patch("/membros/1")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT")))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 404 ao inativar membro inexistente via PATCH")
+    void deveRetornar404AoInativarMembroInexistenteViaPatch() throws Exception {
+        org.mockito.Mockito.doThrow(new br.com.mam.sgmc.errors.ResourceNotFoundException("Membro não encontrado"))
+            .when(membroService).inativarMembro(99L);
+
+        mockMvc.perform(patch("/membros/99")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 401 ao acessar sem autenticação")
+    void deveRetornar401SemAutenticacao() throws Exception {
+        mockMvc.perform(get("/membros"))
+                .andExpect(status().isUnauthorized());
+    }
 }

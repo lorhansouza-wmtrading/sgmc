@@ -20,6 +20,7 @@ import br.com.mam.sgmc.errors.ResourceNotFoundException;
 import br.com.mam.sgmc.model.Evento;
 import br.com.mam.sgmc.model.localizacao.Local;
 import br.com.mam.sgmc.repository.EventoRepository;
+import br.com.mam.sgmc.repository.InscricaoRepository;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Testes Unitários - EventoService")
@@ -30,6 +31,9 @@ class EventoServiceTest {
 
     @Mock
     private LocalService localService;
+
+    @Mock
+    private InscricaoRepository inscricaoRepository;
 
     @InjectMocks
     private EventoService eventoService;
@@ -139,4 +143,59 @@ class EventoServiceTest {
 
         verify(eventoRepository).delete(evento);
     }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao atualizar evento com ID inexistente")
+    void deveLancarExcecaoAoAtualizarEventoComIdInexistente() {
+        when(eventoRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () ->
+            eventoService.atualizarEvento(99L, evento)
+        );
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao deletar evento com ID inexistente")
+    void deveLancarExcecaoAoDeletarEventoComIdInexistente() {
+        when(eventoRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () ->
+            eventoService.deletarEvento(99L)
+        );
+    }
+
+    @Test
+    @DisplayName("Deve inscrever membros em um evento com sucesso")
+    void deveInscreverMembrosComSucesso() {
+        br.com.mam.sgmc.model.Membro membro = new br.com.mam.sgmc.model.Membro();
+        membro.setId(1L);
+        membro.setNome("João");
+
+        br.com.mam.sgmc.model.pk.InscricaoPk pk = new br.com.mam.sgmc.model.pk.InscricaoPk(evento, membro);
+        br.com.mam.sgmc.model.Inscricao inscricao = new br.com.mam.sgmc.model.Inscricao();
+        inscricao.setPk(pk);
+        inscricao.setDataInscricao(new java.sql.Date(System.currentTimeMillis()));
+
+        List<br.com.mam.sgmc.model.Inscricao> inscricoes = List.of(inscricao);
+
+        when(inscricaoRepository.saveAll(inscricoes)).thenReturn(inscricoes);
+
+        List<br.com.mam.sgmc.model.Inscricao> resultado = eventoService.inscreverMembros(inscricoes);
+
+        assertNotNull(resultado);
+        assertEquals(1, resultado.size());
+        verify(inscricaoRepository).saveAll(inscricoes);
+    }
+
+    @Test
+    @DisplayName("Deve retornar lista vazia ao listar eventos sem dados")
+    void deveRetornarListaVaziaAoListarEventosSemDados() {
+        when(eventoRepository.findAll()).thenReturn(List.of());
+
+        List<Evento> eventos = eventoService.listarEventos();
+
+        assertNotNull(eventos);
+        assertTrue(eventos.isEmpty());
+    }
 }
+

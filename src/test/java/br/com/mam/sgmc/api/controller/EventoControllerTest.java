@@ -179,4 +179,40 @@ class EventoControllerTest {
                 .andExpect(jsonPath("$[0].idMembro").value(10))
                 .andExpect(jsonPath("$[0].nomeMembro").value("Membro Teste"));
     }
+
+    @Test
+    @DisplayName("Deve inscrever membro no evento com sucesso")
+    void deveInscreverMembroComSucesso() throws Exception {
+        br.com.mam.sgmc.model.Membro membroMock = new br.com.mam.sgmc.model.Membro();
+        membroMock.setId(10L);
+        membroMock.setNome("Membro Teste");
+
+        br.com.mam.sgmc.api.dto.request.InscricaoRequestDTO dto = new br.com.mam.sgmc.api.dto.request.InscricaoRequestDTO();
+        dto.setIdMembro(10L);
+        dto.setPlacaMoto(null);
+
+        br.com.mam.sgmc.model.pk.InscricaoPk pk = new br.com.mam.sgmc.model.pk.InscricaoPk(evento, membroMock);
+        br.com.mam.sgmc.model.Inscricao inscricao = new br.com.mam.sgmc.model.Inscricao();
+        inscricao.setPk(pk);
+        inscricao.setDataInscricao(new java.sql.Date(System.currentTimeMillis()));
+
+        when(eventoService.buscarPorId(1L)).thenReturn(evento);
+        when(membroService.buscarPorId(10L)).thenReturn(membroMock);
+        when(eventoService.inscreverMembros(any())).thenReturn(List.of(inscricao));
+
+        mockMvc.perform(post("/eventos/1/inscricoes")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(List.of(dto))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$[0].idMembro").value(10))
+                .andExpect(jsonPath("$[0].nomeMembro").value("Membro Teste"));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 401 ao acessar sem autenticação")
+    void deveRetornar401SemAutenticacao() throws Exception {
+        mockMvc.perform(get("/eventos"))
+                .andExpect(status().isUnauthorized());
+    }
 }
