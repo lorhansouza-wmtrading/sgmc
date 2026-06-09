@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Embeddable
-public class ParticipacaoPk implements Serializable {
+public class InscricaoPk implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "id_evento", referencedColumnName = "id_evento")

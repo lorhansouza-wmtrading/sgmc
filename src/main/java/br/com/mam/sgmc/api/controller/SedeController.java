@@ -3,6 +3,7 @@ package br.com.mam.sgmc.api.controller;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -15,15 +16,18 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
+import br.com.mam.sgmc.api.openapi.SedeControllerOpenAPI;
+
+@PreAuthorize("hasAnyRole('PRESIDENT','SECRETARY')")
 @RestController
 @RequestMapping("/sedes")
 @RequiredArgsConstructor
-public class SedeController {
+public class SedeController implements SedeControllerOpenAPI {
 
     private final SedeService sedeService;
 
     @PostMapping
-    public ResponseEntity<Void> salvarSede(@RequestBody SedeRequestDTO sedeRequestDTO) {
+    public ResponseEntity<Void> salvarSede(@RequestBody @Valid SedeRequestDTO sedeRequestDTO) {
         Sede sedeSalva = sedeService.salvarSede(
             SedeRequestDTO.toSede(sedeRequestDTO),
             sedeRequestDTO.getCidade(), 

@@ -22,6 +22,7 @@ public class Seguro {
     @Column(name = "nome", length = 255)
     private String nome;
 
-    @OneToMany(mappedBy = "seguro")
-    private List<CondicaoSeguro> condicoesSeguro;
+    @jakarta.persistence.ManyToOne
+    @jakarta.persistence.JoinColumn(name = "id_condicao_seguro", referencedColumnName = "idcondicao_seguro", nullable = false)
+    private CondicaoSeguro condicaoSeguro;
 }

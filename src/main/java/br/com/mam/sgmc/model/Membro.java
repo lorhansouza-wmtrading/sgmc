@@ -60,10 +60,8 @@ public class Membro {
     private String nomeContatoEmergencia;
     @Column(name = "telefone_contato_emergencia", length = 15)
     private String telefoneContatoEmergencia;
-
-    @ManyToOne
-    @JoinColumn(name = "id_cargo")
-    private Cargo cargo;
+    @Column(name = "estado_civil", length = 15)
+    private String estadoCivil;
 
     @ManyToOne
     @JoinColumn(name = "id_sede")
@@ -72,7 +70,8 @@ public class Membro {
     @OneToOne(mappedBy = "membro", cascade = CascadeType.ALL, orphanRemoval = true)
     private FichaMedica fichaMedica;
 
-    @OneToOne(mappedBy = "membro", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "id_identificacao")
     @JsonManagedReference
     private Identificacao identidade;
 
@@ -82,5 +81,5 @@ public class Membro {
 
     @OneToMany(mappedBy = "pk.membro", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<Participacao> participacoes;
+    private List<Inscricao> inscricoes;
 }

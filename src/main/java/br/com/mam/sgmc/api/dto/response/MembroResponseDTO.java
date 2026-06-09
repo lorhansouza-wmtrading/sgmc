@@ -21,14 +21,15 @@ public class MembroResponseDTO implements Serializable {
     private Date dataNascimento;
     private String nacionalidade;
     private String naturalidade;
+    private String estadoCivil;
     private Integer idade;
     private Boolean ehBatizado;
     private Boolean temEscudo;
     private Boolean ativo;
     private String tamanhoCamisa;
     private Date dataAdmissao;
-    private Long idCargo; // TODO: Precisa disso? Não seria melhor passar só o nome do cargo?
-    private Long idSede; // TODO: Precisa disso? Não seria melhor passar só o nome da sede?
+    private Long idCargo;
+    private Long idSede;
     private IdentificacaoResponseDTO identidade;
     private FichaMedicaResponseDTO fichaMedica;
 
@@ -43,13 +44,14 @@ public class MembroResponseDTO implements Serializable {
                 membro.getDataNascimento(),
                 membro.getNacionalidade(),
                 membro.getNaturalidade(),
+                membro.getEstadoCivil(),
                 membro.getIdade(),
                 getBooleanFromInt(membro.getEhBatizado()),
                 getBooleanFromInt(membro.getTemEscudo()),
                 getBooleanFromInt(membro.getAtivo()),
                 membro.getTamanhoCamisa(),
                 membro.getDataAdmissao(),
-                membro.getCargo() != null ? membro.getCargo().getId() : null,
+                null,
                 membro.getSede() != null ? membro.getSede().getId() : null,
                 membro.getIdentidade() != null ? IdentificacaoResponseDTO.toResponseDTO(membro.getIdentidade()) : null,
                 membro.getFichaMedica() != null ? FichaMedicaResponseDTO.toResponseDTO(membro.getFichaMedica()) : null);

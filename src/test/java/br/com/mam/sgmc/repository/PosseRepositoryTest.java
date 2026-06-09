@@ -24,6 +24,9 @@ import br.com.mam.sgmc.model.pk.PossePk;
 @DisplayName("PosseRepository Integration Tests")
 class PosseRepositoryTest {
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private org.springframework.web.client.RestClient keycloakRestClient;
+
     @Autowired
     private PosseRepository posseRepository;
 
@@ -50,9 +53,9 @@ class PosseRepositoryTest {
         membro.setEmail("beto@email.com");
         membro.setTelefone("11988887777");
         membro.setDataNascimento(Date.valueOf(LocalDate.of(1985, 6, 15)));
-        membro.setEhBatizado(0); // Batizado
-        membro.setTemEscudo(0); // Tem escudo
-        membro.setAtivo(0); // Ativo
+        membro.setEhBatizado(0);
+        membro.setTemEscudo(0);
+        membro.setAtivo(0);
         membro.setTamanhoCamisa("GG");
         membro.setDataAdmissao(Date.valueOf(LocalDate.now()));
         membro.setNacionalidade("Brasileira");
@@ -69,7 +72,7 @@ class PosseRepositoryTest {
         posse.setPossePk(possePk);
         posse.setDataInicio(Date.valueOf(LocalDate.now()));
         posse.setDataFim(Date.valueOf(LocalDate.now().plusYears(1)));
-        
+
         Posse posseSalva = posseRepository.save(posse);
         assertNotNull(posseSalva);
         assertEquals(cargo.getId(), posseSalva.getPossePk().getCargo().getId());

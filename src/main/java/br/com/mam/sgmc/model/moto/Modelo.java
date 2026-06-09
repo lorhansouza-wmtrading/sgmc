@@ -23,6 +23,6 @@ public class Modelo {
     private int cilindrada;
 
     @ManyToOne
-    @JoinColumn(name = "marca_id", nullable = false)
+    @JoinColumn(name = "id_marca", nullable = false)
     private Marca marca;
 }

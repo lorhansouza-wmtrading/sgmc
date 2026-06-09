@@ -7,10 +7,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.mam.sgmc.errors.ResourceNotFoundException;
 import br.com.mam.sgmc.model.Evento;
-import br.com.mam.sgmc.model.Participacao;
+import br.com.mam.sgmc.model.Inscricao;
 import br.com.mam.sgmc.model.localizacao.Local;
 import br.com.mam.sgmc.repository.EventoRepository;
-import br.com.mam.sgmc.repository.ParticipacaoRepository;
+import br.com.mam.sgmc.repository.InscricaoRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -19,11 +19,11 @@ public class EventoService {
 
     private final EventoRepository eventoRepository;
     private final LocalService localService;
-    private final ParticipacaoRepository participacaoRepository;
+    private final InscricaoRepository inscricaoRepository;
 
     @Transactional
-    public List<Participacao> inscreverMembros(List<Participacao> participacoes) {
-        return this.participacaoRepository.saveAll(participacoes);
+    public List<Inscricao> inscreverMembros(List<Inscricao> inscricoes) {
+        return this.inscricaoRepository.saveAll(inscricoes);
     }
 
     public List<Evento> listarEventos(){

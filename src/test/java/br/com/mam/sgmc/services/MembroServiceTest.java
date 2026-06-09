@@ -83,6 +83,7 @@ class MembroServiceTest {
         membro.setDataNascimento(Date.valueOf(LocalDate.of(1990, 1, 1)));
         membro.setEhBatizado(0); // BATIZADO
         membro.setTemEscudo(0); // TEM_ESCUDO
+        membro.setEstadoCivil("Casado");
         membro.setAtivo(0); // ATIVO
         membro.setTamanhoCamisa("G");
         membro.setDataAdmissao(Date.valueOf(LocalDate.now()));
@@ -108,12 +109,11 @@ class MembroServiceTest {
     @DisplayName("Deve salvar um membro com sucesso")
     void deveSalvarMembroComSucesso() {
         when(membroRepository.findByNome(any())).thenReturn(null);
-        when(cargoRepository.findById(1L)).thenReturn(Optional.of(cargo));
         when(sedeRepository.findById(1L)).thenReturn(Optional.of(sede));
         when(paisRepository.findById("BR")).thenReturn(Optional.of(pais));
         when(membroRepository.save(any(Membro.class))).thenReturn(membro);
 
-        Membro salvo = membroService.salvarMembro(membro, 1L, 1L, "BR");
+        Membro salvo = membroService.salvarMembro(membro, null, 1L, "BR");
 
         assertNotNull(salvo);
         assertEquals("João Silva", salvo.getNome());
@@ -126,18 +126,7 @@ class MembroServiceTest {
         when(membroRepository.findByNome("João Silva")).thenReturn(membro);
 
         assertThrows(ResponseStatusException.class, () -> 
-            membroService.salvarMembro(membro, 1L, 1L, "BR")
-        );
-    }
-
-    @Test
-    @DisplayName("Deve lançar exceção ao salvar membro com cargo inexistente")
-    void deveLancarExcecaoAoSalvarMembroComCargoInexistente() {
-        when(membroRepository.findByNome(any())).thenReturn(null);
-        when(cargoRepository.findById(1L)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> 
-            membroService.salvarMembro(membro, 1L, 1L, "BR")
+            membroService.salvarMembro(membro, null, 1L, "BR")
         );
     }
 
@@ -145,11 +134,10 @@ class MembroServiceTest {
     @DisplayName("Deve lançar exceção ao salvar membro com sede inexistente")
     void deveLancarExcecaoAoSalvarMembroComSedeInexistente() {
         when(membroRepository.findByNome(any())).thenReturn(null);
-        when(cargoRepository.findById(1L)).thenReturn(Optional.of(cargo));
         when(sedeRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> 
-            membroService.salvarMembro(membro, 1L, 1L, "BR")
+            membroService.salvarMembro(membro, null, 1L, "BR")
         );
     }
 
@@ -179,12 +167,11 @@ class MembroServiceTest {
     @DisplayName("Deve atualizar um membro com sucesso")
     void deveAtualizarMembroComSucesso() {
         when(membroRepository.findById(1L)).thenReturn(Optional.of(membro));
-        when(cargoRepository.findById(1L)).thenReturn(Optional.of(cargo));
         when(sedeRepository.findById(1L)).thenReturn(Optional.of(sede));
         when(paisRepository.findById("BR")).thenReturn(Optional.of(pais));
         when(membroRepository.save(any(Membro.class))).thenReturn(membro);
 
-        Membro atualizado = membroService.atualizarMembro(membro, 1L, 1L, 1L, "BR");
+        Membro atualizado = membroService.atualizarMembro(membro, 1L, null, 1L, "BR");
 
         assertNotNull(atualizado);
         verify(membroRepository).save(any(Membro.class));
@@ -196,7 +183,7 @@ class MembroServiceTest {
         when(membroRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> 
-            membroService.atualizarMembro(membro, 99L, 1L, 1L, "BR")
+            membroService.atualizarMembro(membro, 99L, null, 1L, "BR")
         );
     }
 
@@ -263,5 +250,85 @@ class MembroServiceTest {
         membro.setDataNascimento(Date.valueOf(LocalDate.now().minusYears(30)));
         Integer idade = membroService.calcularIdade(membro);
         assertEquals(30, idade);
+    }
+
+    @Test
+    @DisplayName("Deve atualizar membro alterando status de ativo para inativo")
+    void deveAtualizarMembroAlterandoStatusParaInativo() {
+        Membro membroAtualizado = new Membro();
+        membroAtualizado.setNome("João Silva");
+        membroAtualizado.setApelido("João");
+        membroAtualizado.setSexo("M");
+        membroAtualizado.setEmail("joao@email.com");
+        membroAtualizado.setTelefone("11999999999");
+        membroAtualizado.setDataNascimento(Date.valueOf(LocalDate.of(1990, 1, 1)));
+        membroAtualizado.setEhBatizado(0);
+        membroAtualizado.setTemEscudo(0);
+        membroAtualizado.setAtivo(Ativo.INATIVO.getCodigo());
+        membroAtualizado.setTamanhoCamisa("G");
+        membroAtualizado.setDataAdmissao(Date.valueOf(LocalDate.now()));
+
+        when(membroRepository.findById(1L)).thenReturn(java.util.Optional.of(membro));
+        when(membroRepository.save(any(Membro.class))).thenReturn(membro);
+
+        Membro resultado = membroService.atualizarMembro(membroAtualizado, 1L, null, null, null);
+
+        assertNotNull(resultado);
+        assertEquals(Ativo.INATIVO.getCodigo(), resultado.getAtivo());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao atualizar membro no Brasil sem CPF")
+    void deveLancarExcecaoAoAtualizarMembroNoBrasilSemCPF() {
+        Membro membroAtualizado = new Membro();
+        membroAtualizado.setNome("João Silva");
+        membroAtualizado.setApelido("João");
+        membroAtualizado.setSexo("M");
+        membroAtualizado.setEmail("joao@email.com");
+        membroAtualizado.setTelefone("11999999999");
+        membroAtualizado.setDataNascimento(Date.valueOf(LocalDate.of(1990, 1, 1)));
+        membroAtualizado.setEhBatizado(0);
+        membroAtualizado.setTemEscudo(0);
+        membroAtualizado.setAtivo(0);
+        membroAtualizado.setTamanhoCamisa("G");
+        membroAtualizado.setDataAdmissao(Date.valueOf(LocalDate.now()));
+
+        Identificacao identidade = new Identificacao();
+        identidade.setTipo("RG");
+        identidade.setIdentidade("123456789");
+        identidade.setEmissor("SSP");
+        identidade.setDataEmissao(Date.valueOf(LocalDate.of(2010, 1, 1)));
+        membroAtualizado.setIdentidade(identidade);
+
+        when(membroRepository.findById(1L)).thenReturn(java.util.Optional.of(membro));
+
+        assertThrows(ResponseStatusException.class, () ->
+            membroService.atualizarMembro(membroAtualizado, 1L, null, null, "BR")
+        );
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao inativar membro com ID inexistente")
+    void deveLancarExcecaoAoInativarMembroComIdInexistente() {
+        when(membroRepository.findById(99L)).thenReturn(java.util.Optional.empty());
+
+        assertThrows(br.com.mam.sgmc.errors.ResourceNotFoundException.class, () ->
+            membroService.inativarMembro(99L)
+        );
+    }
+
+    @Test
+    @DisplayName("Deve salvar membro com ficha médica")
+    void deveSalvarMembroComFichaMedica() {
+        when(membroRepository.findByNome(any())).thenReturn(null);
+        when(sedeRepository.findById(1L)).thenReturn(java.util.Optional.of(sede));
+        when(paisRepository.findById("BR")).thenReturn(java.util.Optional.of(pais));
+        when(membroRepository.save(any(Membro.class))).thenReturn(membro);
+        when(fichaMedicaRepository.save(any())).thenReturn(membro.getFichaMedica());
+
+        Membro salvo = membroService.salvarMembro(membro, null, 1L, "BR");
+
+        assertNotNull(salvo);
+        verify(fichaMedicaRepository).save(any());
     }
 }

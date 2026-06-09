@@ -35,7 +35,6 @@ public class Identificacao {
     @JoinColumn(name = "pais_sigla")
     private Pais pais;
 
-    @OneToOne
-    @JoinColumn(name = "id_membro")
+    @OneToOne(mappedBy = "identidade")
     private Membro membro;
 }

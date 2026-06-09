@@ -1,6 +1,30 @@
+server:
+  servlet:
+    context-path: /api
 spring:
     profiles:
         active:
-            - testH2
+            - dev
     application:
         name: sgmc-back
+    security:   
+        oauth2:
+            resourceserver:
+                jwt:
+                    issuer-uri: http://localhost:8089/realms/sgmc         
+            client:
+                registration:
+                    sgmc:
+                        provider: keycloak
+                        client-id: sgmc
+                        client-secret: 2wuAGkrVdfoDWfJxMuAtYqRmxXT0k73W
+                        authorization-grant-type: client_credentials
+                provider:
+                    keycloak:
+                        token-uri: http://localhost:8089/realms/sgmc/protocol/openid-connect/token
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: false

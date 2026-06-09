@@ -42,7 +42,7 @@ public class Evento {
 
     @OneToMany(mappedBy = "pk.evento")
     @JsonManagedReference
-    private List<Participacao> participacoes;
+    private List<Inscricao> inscricoes;
 
     public static Evento fromRequestDTO(EventoRequestDTO eventoRequestDTO) {
         Evento evento = new Evento();

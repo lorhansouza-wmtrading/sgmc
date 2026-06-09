@@ -54,9 +54,9 @@ public class MotoService {
         }
 
         CondicaoSeguro condicaoSeguro = this.condicaoSeguroRepository
-                .findByTipo(moto.getSeguro().getCondicoesSeguro().get(0).getTipo());
+                .findByTipo(moto.getSeguro().getCondicaoSeguro().getTipo());
         if (condicaoSeguro == null) {
-            condicaoSeguro = this.condicaoSeguroRepository.save(moto.getSeguro().getCondicoesSeguro().get(0));
+            condicaoSeguro = this.condicaoSeguroRepository.save(moto.getSeguro().getCondicaoSeguro());
         }
 
         Membro membro = this.membroService.buscarPorId(idMembro);
@@ -107,9 +107,9 @@ public class MotoService {
         }
 
         CondicaoSeguro condicaoSeguro = this.condicaoSeguroRepository
-                .findByTipo(moto.getSeguro().getCondicoesSeguro().get(0).getTipo());
+                .findByTipo(moto.getSeguro().getCondicaoSeguro().getTipo());
         if (condicaoSeguro == null) {
-            condicaoSeguro = this.condicaoSeguroRepository.save(moto.getSeguro().getCondicoesSeguro().get(0));
+            condicaoSeguro = this.condicaoSeguroRepository.save(moto.getSeguro().getCondicaoSeguro());
         }
 
         Membro membro = this.membroService.buscarPorId(idMembro);

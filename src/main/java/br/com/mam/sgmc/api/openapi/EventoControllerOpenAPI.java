@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import br.com.mam.sgmc.api.dto.request.EventoRequestDTO;
 import br.com.mam.sgmc.api.dto.request.InscricaoRequestDTO;
 import br.com.mam.sgmc.api.dto.response.EventoResponseDTO;
-import br.com.mam.sgmc.api.dto.response.ParticipacaoResponseDTO;
+import br.com.mam.sgmc.api.dto.response.InscricaoResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -41,7 +41,7 @@ public interface EventoControllerOpenAPI {
             @ApiResponse(responseCode = "404", description = "Não encontrado", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{}"))),
             @ApiResponse(responseCode = "400", description = "Requisição inválida", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{}")))
     })
-    ResponseEntity<EventoResponseDTO> atualizarEvento(Long id, EventoRequestDTO evento);
+    ResponseEntity<EventoResponseDTO> atualizarEvento(Long id, @Valid EventoRequestDTO evento);
 
     @Operation(summary = "Deleta um evento", responses = {
             @ApiResponse(responseCode = "204", description = "No Content", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{}"))),
@@ -54,5 +54,11 @@ public interface EventoControllerOpenAPI {
             @ApiResponse(responseCode = "400", description = "Requisição inválida", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{}"))),
             @ApiResponse(responseCode = "404", description = "Não encontrado", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{}")))
     })
-    ResponseEntity<List<ParticipacaoResponseDTO>> inscreverMembros(Long id, @Valid List<InscricaoRequestDTO> inscricoes);
+    ResponseEntity<List<InscricaoResponseDTO>> inscreverMembros(Long id, @Valid List<InscricaoRequestDTO> inscricoes);
+
+    @Operation(summary = "Lista todos os membros inscritos em um evento", responses = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "[]"))),
+            @ApiResponse(responseCode = "404", description = "Evento não encontrado", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{}")))
+    })
+    ResponseEntity<List<InscricaoResponseDTO>> listarInscritos(Long id);
 }

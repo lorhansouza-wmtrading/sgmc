@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,10 +27,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import jakarta.validation.Valid;
 
+import br.com.mam.sgmc.api.openapi.MotoControllerOpenAPI;
+
+@PreAuthorize("hasAnyRole('PRESIDENT','SECRETARY')")
 @RestController
 @RequestMapping(value = "/motos")
 @RequiredArgsConstructor
-public class MotoController {
+public class MotoController implements MotoControllerOpenAPI {
 
     private final MotoService motoService;
 
@@ -47,7 +51,7 @@ public class MotoController {
         condicaoSeguro.setValorFranquia(motoRequestDTO.getValorFranquia());
 
         seguro.setNome(motoRequestDTO.getNomeSeguradora());
-        seguro.setCondicoesSeguro(List.of(condicaoSeguro));
+        seguro.setCondicaoSeguro(condicaoSeguro);
 
         marca.setNome(motoRequestDTO.getMarca());
         modelo.setMarca(marca);
@@ -100,7 +104,7 @@ public class MotoController {
         condicaoSeguro.setValorFranquia(motoRequestDTO.getValorFranquia());
 
         seguro.setNome(motoRequestDTO.getNomeSeguradora());
-        seguro.setCondicoesSeguro(List.of(condicaoSeguro));
+        seguro.setCondicaoSeguro(condicaoSeguro);
 
         marca.setNome(motoRequestDTO.getMarca());
         modelo.setMarca(marca);

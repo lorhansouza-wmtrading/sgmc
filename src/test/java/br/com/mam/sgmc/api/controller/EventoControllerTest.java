@@ -4,6 +4,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.Instant;
 import java.util.List;
@@ -12,16 +15,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.transaction.annotation.Transactional;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -33,18 +31,22 @@ import br.com.mam.sgmc.model.localizacao.Local;
 import br.com.mam.sgmc.services.EventoService;
 import br.com.mam.sgmc.errors.ResourceNotFoundException;
 
-@SpringBootTest
-@Transactional
+@WebMvcTest(EventoController.class)
+@Import(br.com.mam.sgmc.config.SecurityConfig.class)
 @DisplayName("Testes de Integração - EventoController")
 class EventoControllerTest {
 
-    private MockMvc mockMvc;
-
     @Autowired
-    private WebApplicationContext context;
+    private MockMvc mockMvc;
 
     @MockitoBean
     private EventoService eventoService;
+
+    @MockitoBean
+    private br.com.mam.sgmc.services.MembroService membroService;
+
+    @MockitoBean
+    private br.com.mam.sgmc.services.MotoService motoService;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -54,7 +56,6 @@ class EventoControllerTest {
     @BeforeEach
     void setUp() {
         objectMapper.registerModule(new JavaTimeModule());
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
 
         LocalRequestDTO localDTO = new LocalRequestDTO();
         localDTO.setNome("Sede Campestre");
@@ -95,6 +96,7 @@ class EventoControllerTest {
         when(eventoService.criarEvento(any(Evento.class))).thenReturn(evento);
 
         mockMvc.perform(post("/eventos")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(eventoRequestDTO)))
                 .andExpect(status().isCreated())
@@ -107,7 +109,7 @@ class EventoControllerTest {
     void deveListarEventos() throws Exception {
         when(eventoService.listarEventos()).thenReturn(List.of(evento));
 
-        mockMvc.perform(get("/eventos"))
+        mockMvc.perform(get("/eventos").with(jwt().authorities(() -> "ROLE_PRESIDENT")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].nome").value("Encontro de Motos"));
@@ -118,7 +120,7 @@ class EventoControllerTest {
     void deveBuscarEventoPorId() throws Exception {
         when(eventoService.buscarPorId(1L)).thenReturn(evento);
 
-        mockMvc.perform(get("/eventos/1"))
+        mockMvc.perform(get("/eventos/1").with(jwt().authorities(() -> "ROLE_PRESIDENT")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.nome").value("Encontro de Motos"));
@@ -129,7 +131,7 @@ class EventoControllerTest {
     void deveRetornar404AoBuscarIdInexistente() throws Exception {
         when(eventoService.buscarPorId(99L)).thenThrow(new ResourceNotFoundException("Evento não encontrado"));
 
-        mockMvc.perform(get("/eventos/99"))
+        mockMvc.perform(get("/eventos/99").with(jwt().authorities(() -> "ROLE_PRESIDENT")))
                 .andExpect(status().isNotFound());
     }
 
@@ -139,6 +141,7 @@ class EventoControllerTest {
         when(eventoService.atualizarEvento(eq(1L), any(Evento.class))).thenReturn(evento);
 
         mockMvc.perform(put("/eventos/1")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(eventoRequestDTO)))
                 .andExpect(status().isOk())
@@ -151,7 +154,65 @@ class EventoControllerTest {
     void deveDeletarEventoComSucesso() throws Exception {
         doNothing().when(eventoService).deletarEvento(1L);
 
-        mockMvc.perform(delete("/eventos/1"))
+        mockMvc.perform(delete("/eventos/1").with(jwt().authorities(() -> "ROLE_PRESIDENT")))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("Deve listar inscrições de um evento")
+    void deveListarInscricoesDeUmEvento() throws Exception {
+        br.com.mam.sgmc.model.Membro membroMock = new br.com.mam.sgmc.model.Membro();
+        membroMock.setId(10L);
+        membroMock.setNome("Membro Teste");
+        
+        br.com.mam.sgmc.model.pk.InscricaoPk pk = new br.com.mam.sgmc.model.pk.InscricaoPk(evento, membroMock);
+        br.com.mam.sgmc.model.Inscricao inscricao = new br.com.mam.sgmc.model.Inscricao();
+        inscricao.setPk(pk);
+        inscricao.setDataInscricao(new java.sql.Date(System.currentTimeMillis()));
+        
+        evento.setInscricoes(List.of(inscricao));
+
+        when(eventoService.buscarPorId(1L)).thenReturn(evento);
+
+        mockMvc.perform(get("/eventos/1/inscricoes").with(jwt().authorities(() -> "ROLE_PRESIDENT")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].idMembro").value(10))
+                .andExpect(jsonPath("$[0].nomeMembro").value("Membro Teste"));
+    }
+
+    @Test
+    @DisplayName("Deve inscrever membro no evento com sucesso")
+    void deveInscreverMembroComSucesso() throws Exception {
+        br.com.mam.sgmc.model.Membro membroMock = new br.com.mam.sgmc.model.Membro();
+        membroMock.setId(10L);
+        membroMock.setNome("Membro Teste");
+
+        br.com.mam.sgmc.api.dto.request.InscricaoRequestDTO dto = new br.com.mam.sgmc.api.dto.request.InscricaoRequestDTO();
+        dto.setIdMembro(10L);
+        dto.setPlacaMoto(null);
+
+        br.com.mam.sgmc.model.pk.InscricaoPk pk = new br.com.mam.sgmc.model.pk.InscricaoPk(evento, membroMock);
+        br.com.mam.sgmc.model.Inscricao inscricao = new br.com.mam.sgmc.model.Inscricao();
+        inscricao.setPk(pk);
+        inscricao.setDataInscricao(new java.sql.Date(System.currentTimeMillis()));
+
+        when(eventoService.buscarPorId(1L)).thenReturn(evento);
+        when(membroService.buscarPorId(10L)).thenReturn(membroMock);
+        when(eventoService.inscreverMembros(any())).thenReturn(List.of(inscricao));
+
+        mockMvc.perform(post("/eventos/1/inscricoes")
+                .with(jwt().authorities(() -> "ROLE_PRESIDENT"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(List.of(dto))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$[0].idMembro").value(10))
+                .andExpect(jsonPath("$[0].nomeMembro").value("Membro Teste"));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 401 ao acessar sem autenticação")
+    void deveRetornar401SemAutenticacao() throws Exception {
+        mockMvc.perform(get("/eventos"))
+                .andExpect(status().isUnauthorized());
     }
 }

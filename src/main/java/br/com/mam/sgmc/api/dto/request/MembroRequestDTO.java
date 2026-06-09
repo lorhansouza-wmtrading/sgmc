@@ -36,6 +36,8 @@ public class MembroRequestDTO implements Serializable {
     private String nacionalidade;
     @NotBlank(message = "Naturalidade do membro não preenchida.")
     private String naturalidade;
+    @NotBlank(message = "Estado civil do membro não preenchido.")
+    private String estadoCivil;
     @NotNull(message = "Batizado do membro não preenchido.")
     private Boolean ehBatizado;
     @NotNull(message = "Escudo do membro não preenchido.")

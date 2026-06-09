@@ -75,7 +75,7 @@ class MotoServiceTest {
 
         seguro = new Seguro();
         seguro.setNome("Porto Seguro");
-        seguro.setCondicoesSeguro(List.of(condicaoSeguro));
+        seguro.setCondicaoSeguro(condicaoSeguro);
 
         moto = new Moto();
         moto.setPlaca("ABC1234");
@@ -194,7 +194,6 @@ class MotoServiceTest {
     @Test
     @DisplayName("Deve atualizar uma moto com sucesso")
     void deveAtualizarMotoComSucesso() {
-        System.out.println("Executando: Deve atualizar uma moto com sucesso");
         when(motoRepository.findByPlaca(any())).thenReturn(moto);
         when(modeloRepository.findByNome(any())).thenReturn(modelo);
         when(marcaRepository.findByNome(any())).thenReturn(marca);
@@ -207,6 +206,124 @@ class MotoServiceTest {
 
         assertNotNull(motoAtualizada);
         verify(motoRepository).save(any(Moto.class));
-        System.out.println("Sucesso: Moto com placa " + motoAtualizada.getPlaca() + " atualizada.");
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao salvar moto com placa duplicada")
+    void deveLancarExcecaoAoSalvarMotoComPlacaDuplicada() {
+        when(motoRepository.findByPlaca("ABC1234")).thenReturn(moto);
+
+        assertThrows(org.springframework.web.server.ResponseStatusException.class, () ->
+            motoService.salvarMoto(moto, 1L)
+        );
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao salvar moto com membro inativo")
+    void deveLancarExcecaoAoSalvarMotoComMembroInativo() {
+        membro.setAtivo(br.com.mam.sgmc.model.enums.Ativo.INATIVO.getCodigo());
+        when(motoRepository.findByPlaca(any())).thenReturn(null);
+        when(marcaRepository.findByNome(any())).thenReturn(marca);
+        when(modeloRepository.findByNome(any())).thenReturn(modelo);
+        when(seguroRepository.findByNome(any())).thenReturn(seguro);
+        when(condicaoSeguroRepository.findByTipo(any())).thenReturn(condicaoSeguro);
+        when(membroService.buscarPorId(1L)).thenReturn(membro);
+
+        assertThrows(org.springframework.web.server.ResponseStatusException.class, () ->
+            motoService.salvarMoto(moto, 1L)
+        );
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao atualizar moto com placa inexistente")
+    void deveLancarExcecaoAoAtualizarMotoComPlacaInexistente() {
+        when(motoRepository.findByPlaca("XYZ9999")).thenReturn(null);
+        moto.setPlaca("XYZ9999");
+
+        assertThrows(ResourceNotFoundException.class, () ->
+            motoService.atualizarMoto(moto, 1L)
+        );
+    }
+
+    @Test
+    @DisplayName("Deve atualizar moto criando entidades quando não existem")
+    void deveAtualizarMotoCriandoEntidadesQuandoNaoExistem() {
+        when(motoRepository.findByPlaca(any())).thenReturn(moto);
+        when(modeloRepository.findByNome(any())).thenReturn(null);
+        when(modeloRepository.save(any())).thenReturn(modelo);
+        when(marcaRepository.findByNome(any())).thenReturn(null);
+        when(marcaRepository.save(any())).thenReturn(marca);
+        when(seguroRepository.findByNome(any())).thenReturn(null);
+        when(seguroRepository.save(any())).thenReturn(seguro);
+        when(condicaoSeguroRepository.findByTipo(any())).thenReturn(null);
+        when(condicaoSeguroRepository.save(any())).thenReturn(condicaoSeguro);
+        when(membroService.buscarPorId(1L)).thenReturn(membro);
+        when(motoRepository.save(any(Moto.class))).thenReturn(moto);
+
+        Moto motoAtualizada = motoService.atualizarMoto(moto, 1L);
+
+        assertNotNull(motoAtualizada);
+        verify(modeloRepository).save(any());
+        verify(marcaRepository).save(any());
+        verify(seguroRepository).save(any());
+        verify(condicaoSeguroRepository).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao atualizar moto com membro inativo")
+    void deveLancarExcecaoAoAtualizarMotoComMembroInativo() {
+        membro.setAtivo(br.com.mam.sgmc.model.enums.Ativo.INATIVO.getCodigo());
+        when(motoRepository.findByPlaca(any())).thenReturn(moto);
+        when(modeloRepository.findByNome(any())).thenReturn(modelo);
+        when(marcaRepository.findByNome(any())).thenReturn(marca);
+        when(seguroRepository.findByNome(any())).thenReturn(seguro);
+        when(condicaoSeguroRepository.findByTipo(any())).thenReturn(condicaoSeguro);
+        when(membroService.buscarPorId(1L)).thenReturn(membro);
+
+        assertThrows(org.springframework.web.server.ResponseStatusException.class, () ->
+            motoService.atualizarMoto(moto, 1L)
+        );
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao deletar moto que não pertence ao membro")
+    void deveLancarExcecaoAoDeletarMotoQueNaoPertenceAoMembro() {
+        when(motoRepository.findByPlaca("ABC1234")).thenReturn(moto);
+
+        assertThrows(org.springframework.web.server.ResponseStatusException.class, () ->
+            motoService.deletarMoto(99L, "ABC1234")
+        );
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao deletar moto com placa inexistente")
+    void deveLancarExcecaoAoDeletarMotoComPlacaInexistente() {
+        when(motoRepository.findByPlaca("XYZ0000")).thenReturn(null);
+
+        assertThrows(ResourceNotFoundException.class, () ->
+            motoService.deletarMoto(1L, "XYZ0000")
+        );
+    }
+
+    @Test
+    @DisplayName("Deve listar motos com filtro por membro")
+    void deveListarMotosComFiltroPorMembro() {
+        when(motoRepository.findWithFilters(1L, null, null, null)).thenReturn(List.of(moto));
+
+        java.util.List<Moto> motos = motoService.listarMotos(1L, null, null, null);
+
+        assertNotNull(motos);
+        assertEquals(1, motos.size());
+    }
+
+    @Test
+    @DisplayName("Deve listar motos com filtro por marca")
+    void deveListarMotosComFiltroPorMarca() {
+        when(motoRepository.findWithFilters(null, null, "Honda", null)).thenReturn(List.of(moto));
+
+        java.util.List<Moto> motos = motoService.listarMotos(null, null, "Honda", null);
+
+        assertNotNull(motos);
+        assertEquals(1, motos.size());
     }
 }

@@ -6,12 +6,13 @@ O **SGMC** é uma solução de backend desenvolvida em Java com Spring Boot, pro
 
 Este projeto utiliza o que há de mais moderno no ecossistema Java:
 
-*   **Java 17**: Linguagem base.
+*   **Java 21**: Linguagem base.
 *   **Spring Boot 4.0.6**: Framework para agilidade e configuração simplificada.
 *   **Spring Data JPA**: Abstração de persistência de dados.
 *   **Hibernate 7.2**: Implementação ORM robusta.
+*   **MySQL**: Banco de dados relacional usado em produção.
 *   **H2 Database**: Banco de dados em memória para desenvolvimento e testes.
-*   **SpringDoc OpenAPI (Swagger)**: Documentação interativa da API.
+*   **Scalar**: Documentação interativa da API.
 *   **JUnit 5 & Mockito**: Garantia de qualidade via testes automatizados.
 *   **Lombok**: Redução de código boilerplate.
 
@@ -35,8 +36,9 @@ Este projeto utiliza o que há de mais moderno no ecossistema Java:
 ## 🏁 Como Executar o Projeto
 
 ### Pré-requisitos
-*   JDK 17 ou superior.
+*   JDK 21 ou superior.
 *   Maven 3.8+ instalado (ou use o `./mvnw` incluso).
+*   MySQL 8.0 ou superior instalado.
 
 ### Passo a Passo
 1.  Clone o repositório:
@@ -51,9 +53,9 @@ Este projeto utiliza o que há de mais moderno no ecossistema Java:
     ```bash
     ./mvnw spring-boot:run
     ```
-4.  Acesse a documentação da API (Swagger):
+4.  Acesse a documentação da API (Scalar):
     ```
-    http://localhost:8080/swagger-ui.html
+    http://localhost:8080/api/docs/index.html
     ```
 
 ## 🧪 Rodando os Testes

@@ -6,8 +6,9 @@ import java.util.List;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -30,6 +31,7 @@ import br.com.mam.sgmc.services.MembroService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@PreAuthorize("hasAnyRole('PRESIDENT','SECRETARY')")
 @RestController
 @RequestMapping(value = "/membros")
 @RequiredArgsConstructor
@@ -50,6 +52,7 @@ public class MembroController implements MembroControllerOpenAPI {
         membro.setDataNascimento(Date.valueOf(membroDTO.getDataNascimento()));
         membro.setNacionalidade(membroDTO.getNacionalidade());
         membro.setNaturalidade(membroDTO.getNaturalidade());
+        membro.setEstadoCivil(membroDTO.getEstadoCivil());
         membro.setEhBatizado(membroDTO.getCodigoBatizado());
         membro.setTemEscudo(membroDTO.getCodigoEscudo());
         membro.setAtivo(membroDTO.getCodigoAtivo());
@@ -139,7 +142,7 @@ public class MembroController implements MembroControllerOpenAPI {
         return ResponseEntity.status(HttpStatus.OK).body(MembroResponseDTO.toResponseDTO(membro));
     }
 
-    @DeleteMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<Void> inativarMembro(@PathVariable Long id) {
         this.membroService.inativarMembro(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
