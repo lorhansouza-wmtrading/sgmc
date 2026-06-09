@@ -27,9 +27,9 @@ public class MotoResponseDTO {
         response.setPlaca(moto.getPlaca());
         response.setIdMembro(moto.getMembro().getId());
         response.setNomeMembro(moto.getMembro().getNome());
-        response.setTipoSeguro(moto.getSeguro().getCondicoesSeguro().stream().findFirst().get().getTipo());
+        response.setTipoSeguro(moto.getSeguro().getCondicaoSeguro().getTipo());
         response.setNomeSeguro(moto.getSeguro().getNome());
-        response.setValidadeSeguro(moto.getSeguro().getCondicoesSeguro().stream().findFirst().get().getValidadeFim());
+        response.setValidadeSeguro(moto.getSeguro().getCondicaoSeguro().getValidadeFim());
         return response;
     }
 }
