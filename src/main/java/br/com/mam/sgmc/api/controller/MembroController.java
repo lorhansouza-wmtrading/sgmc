@@ -52,6 +52,7 @@ public class MembroController implements MembroControllerOpenAPI {
         membro.setDataNascimento(Date.valueOf(membroDTO.getDataNascimento()));
         membro.setNacionalidade(membroDTO.getNacionalidade());
         membro.setNaturalidade(membroDTO.getNaturalidade());
+        membro.setEstadoCivil(membroDTO.getEstadoCivil());
         membro.setEhBatizado(membroDTO.getCodigoBatizado());
         membro.setTemEscudo(membroDTO.getCodigoEscudo());
         membro.setAtivo(membroDTO.getCodigoAtivo());

@@ -51,7 +51,7 @@ public class MotoController implements MotoControllerOpenAPI {
         condicaoSeguro.setValorFranquia(motoRequestDTO.getValorFranquia());
 
         seguro.setNome(motoRequestDTO.getNomeSeguradora());
-        seguro.setCondicoesSeguro(List.of(condicaoSeguro));
+        seguro.setCondicaoSeguro(condicaoSeguro);
 
         marca.setNome(motoRequestDTO.getMarca());
         modelo.setMarca(marca);
@@ -104,7 +104,7 @@ public class MotoController implements MotoControllerOpenAPI {
         condicaoSeguro.setValorFranquia(motoRequestDTO.getValorFranquia());
 
         seguro.setNome(motoRequestDTO.getNomeSeguradora());
-        seguro.setCondicoesSeguro(List.of(condicaoSeguro));
+        seguro.setCondicaoSeguro(condicaoSeguro);
 
         marca.setNome(motoRequestDTO.getMarca());
         modelo.setMarca(marca);

@@ -33,10 +33,7 @@ public class MembroService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este nome já existe.");
         }
         
-        if (idCargo != null) {
-            membro.setCargo(cargoRepository.findById(idCargo)
-                .orElseThrow(() -> new ResourceNotFoundException("Cargo não encontrado com ID: " + idCargo)));
-        }
+
         
         if (idSede != null) {
             membro.setSede(sedeRepository.findById(idSede)
@@ -70,6 +67,7 @@ public class MembroService {
         membroExistente.setDataNascimento(membro.getDataNascimento());
         membroExistente.setNacionalidade(membro.getNacionalidade());
         membroExistente.setNaturalidade(membro.getNaturalidade());
+        membroExistente.setEstadoCivil(membro.getEstadoCivil());
         membroExistente.setEhBatizado(membro.getEhBatizado());
         membroExistente.setTemEscudo(membro.getTemEscudo());
         
@@ -84,13 +82,6 @@ public class MembroService {
         membroExistente.setTamanhoCamisa(membro.getTamanhoCamisa());
         membroExistente.setDataAdmissao(membro.getDataAdmissao());
 
-        if (idCargo != null) {
-            membroExistente.setCargo(cargoRepository.findById(idCargo)
-                .orElseThrow(() -> new ResourceNotFoundException("Cargo não encontrado com ID: " + idCargo)));
-        } else {
-            membroExistente.setCargo(null);
-        }
-        
         if (idSede != null) {
             membroExistente.setSede(sedeRepository.findById(idSede)
                 .orElseThrow(() -> new ResourceNotFoundException("Sede não encontrada com ID: " + idSede)));
