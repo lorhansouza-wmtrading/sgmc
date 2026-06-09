@@ -98,8 +98,8 @@ class MotoControllerTest {
         Seguro seguro = new Seguro();
         seguro.setId(1L);
         seguro.setNome("Porto Seguro");
-        seguro.setCondicoesSeguro(List.of(condicaoSeguro));
-        condicaoSeguro.setSeguro(seguro);
+        seguro.setCondicaoSeguro(condicaoSeguro);
+        condicaoSeguro.setSeguros(List.of(seguro));
 
         moto = new Moto();
         moto.setPlaca("ABC1234");

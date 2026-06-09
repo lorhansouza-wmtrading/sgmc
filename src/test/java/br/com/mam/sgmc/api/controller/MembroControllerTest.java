@@ -60,6 +60,7 @@ class MembroControllerTest {
         membroRequestDTO.setDataNascimento(LocalDate.of(1990, 1, 1));
         membroRequestDTO.setNacionalidade("Brasileira");
         membroRequestDTO.setNaturalidade("São Paulo");
+        membroRequestDTO.setEstadoCivil("Solteiro");
         membroRequestDTO.setEhBatizado(true);
         membroRequestDTO.setTemEscudo(true);
         membroRequestDTO.setAtivo(true);
@@ -87,6 +88,7 @@ class MembroControllerTest {
         membro = new Membro();
         membro.setId(1L);
         membro.setNome(membroRequestDTO.getNome());
+        membro.setEstadoCivil("Solteiro");
         membro.setAtivo(Ativo.ATIVO.getCodigo());
         membro.setEhBatizado(0);
         membro.setTemEscudo(0);

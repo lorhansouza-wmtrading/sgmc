@@ -75,7 +75,7 @@ class MotoServiceTest {
 
         seguro = new Seguro();
         seguro.setNome("Porto Seguro");
-        seguro.setCondicoesSeguro(List.of(condicaoSeguro));
+        seguro.setCondicaoSeguro(condicaoSeguro);
 
         moto = new Moto();
         moto.setPlaca("ABC1234");
