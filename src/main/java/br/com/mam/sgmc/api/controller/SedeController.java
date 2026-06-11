@@ -40,7 +40,7 @@ public class SedeController implements SedeControllerOpenAPI {
     }
 
     @PreAuthorize("hasAnyRole('admin', 'diretoria', 'membro')")
-    @GetMapping("/buscar/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<SedeResponseDTO> buscarPorId(@PathVariable Long id) {
         Sede sede = this.sedeService.buscarPorId(id);
         SedeResponseDTO response = SedeResponseDTO.toResponseDTO(sede);
@@ -48,7 +48,7 @@ public class SedeController implements SedeControllerOpenAPI {
     }
 
     @PreAuthorize("hasAnyRole('admin', 'diretoria', 'membro')")
-    @GetMapping("/listar")
+    @GetMapping
     public ResponseEntity<List<SedeResponseDTO>> listarSedesComFiltros(
         @RequestParam(required = false) String nome,
         @RequestParam(required = false) String cidade,
