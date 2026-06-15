@@ -6,9 +6,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
-import br.com.mam.sgmc.model.Membro;
 import br.com.mam.sgmc.model.moto.Moto;
-import br.com.mam.sgmc.repository.MembroRepository;
 import br.com.mam.sgmc.repository.MotoRepository;
 import br.com.mam.sgmc.api.dto.request.InscricaoRequestDTO;
 import lombok.RequiredArgsConstructor;
@@ -21,14 +19,22 @@ public class SgmcSecurity {
     private static final String ROLE_DIRETORIA = "ROLE_diretoria";
     private static final String ROLE_MEMBRO = "ROLE_membro";
 
-    private final MembroRepository membroRepository;
     private final MotoRepository motoRepository;
 
-    private String getEmailFromPrincipal(Authentication authentication) {
+    private Long getMembroIdFromPrincipal(Authentication authentication) {
         if (authentication == null) return null;
         Object principal = authentication.getPrincipal();
         if (principal instanceof Jwt jwt) {
-            return jwt.getClaimAsString("email");
+            Object claim = jwt.getClaim("membro_id");
+            if (claim instanceof Number number) {
+                return number.longValue();
+            } else if (claim instanceof String str) {
+                try {
+                    return Long.parseLong(str);
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            }
         }
         return null;
     }
@@ -50,11 +56,8 @@ public class SgmcSecurity {
             return true;
         }
 
-        String email = getEmailFromPrincipal(auth);
-        if (email == null) return false;
-
-        Membro membro = membroRepository.findById(idMembro).orElse(null);
-        return membro != null && email.equalsIgnoreCase(membro.getEmail());
+        Long tokenMembroId = getMembroIdFromPrincipal(auth);
+        return tokenMembroId != null && tokenMembroId.equals(idMembro);
     }
 
     public boolean isMotoOwner(String placa) {
@@ -65,11 +68,11 @@ public class SgmcSecurity {
             return true;
         }
 
-        String email = getEmailFromPrincipal(auth);
-        if (email == null) return false;
+        Long tokenMembroId = getMembroIdFromPrincipal(auth);
+        if (tokenMembroId == null) return false;
 
         Moto moto = motoRepository.findById(placa).orElse(null);
-        return moto != null && moto.getMembro() != null && email.equalsIgnoreCase(moto.getMembro().getEmail());
+        return moto != null && moto.getMembro() != null && tokenMembroId.equals(moto.getMembro().getId());
     }
 
     public boolean canInscribe(List<InscricaoRequestDTO> dtos) {
@@ -93,18 +96,13 @@ public class SgmcSecurity {
         if (dtos == null || dtos.isEmpty()) {
             return false;
         }
-        String email = getEmailFromPrincipal(auth);
-        if (email == null) {
-            return false;
-        }
-        
-        Membro currentMembro = membroRepository.findByEmail(email);
-        if (currentMembro == null) {
+        Long tokenMembroId = getMembroIdFromPrincipal(auth);
+        if (tokenMembroId == null) {
             return false;
         }
         
         for (InscricaoRequestDTO dto : dtos) {
-            if (!currentMembro.getId().equals(dto.getIdMembro())) {
+            if (!tokenMembroId.equals(dto.getIdMembro())) {
                 return false;
             }
         }
