@@ -1,0 +1,10 @@
+FROM mysql:8.0
+
+ENV MYSQL_DATABASE=sgmc
+ENV MYSQL_USER=motoclube_junior
+ENV MYSQL_PASSWORD=M@m2026
+ENV MYSQL_ROOT_PASSWORD=M@m2026Root
+
+COPY DDLMotoclube.sql /docker-entrypoint-initdb.d/
+
+EXPOSE 3306

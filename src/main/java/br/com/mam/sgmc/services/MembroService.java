@@ -187,6 +187,9 @@ public class MembroService {
     }
 
     public Integer calcularIdade(Membro membro) {
+        if (membro.getDataNascimento() == null) {
+            return null;
+        }
         LocalDate hoje = LocalDate.now();
         LocalDate dataNascimento = membro.getDataNascimento().toLocalDate();
         Integer idade = hoje.getYear() - dataNascimento.getYear();
