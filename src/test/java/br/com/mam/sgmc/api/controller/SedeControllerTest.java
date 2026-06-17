@@ -137,7 +137,7 @@ class SedeControllerTest {
     }
 
     @Nested
-    @DisplayName("2. Busca de Sede por ID (GET /sedes/buscar/{id})")
+    @DisplayName("2. Busca de Sede por ID (GET /sedes/{id})")
     class BuscaSede {
 
         @Test
@@ -145,7 +145,7 @@ class SedeControllerTest {
         void deveBuscarSedePorIdComSucesso() throws Exception {
             when(sedeService.buscarPorId(1L)).thenReturn(sede);
 
-            mockMvc.perform(get("/sedes/buscar/1")
+            mockMvc.perform(get("/sedes/1")
                     .with(jwt().authorities(() -> "ROLE_admin")))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(1))
@@ -161,14 +161,14 @@ class SedeControllerTest {
             when(sedeService.buscarPorId(99L))
                 .thenThrow(new ResourceNotFoundException("Sede não encontrada"));
 
-            mockMvc.perform(get("/sedes/buscar/99")
+            mockMvc.perform(get("/sedes/99")
                     .with(jwt().authorities(() -> "ROLE_admin")))
                     .andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("3. Listagem de Sedes (GET /sedes/listar)")
+    @DisplayName("3. Listagem de Sedes (GET /sedes)")
     class ListagemSedes {
 
         @Test
@@ -177,7 +177,7 @@ class SedeControllerTest {
             when(sedeService.listarSedesComFiltros(null, null, null, null))
                 .thenReturn(List.of(sede));
 
-            mockMvc.perform(get("/sedes/listar")
+            mockMvc.perform(get("/sedes")
                     .with(jwt().authorities(() -> "ROLE_admin")))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[0].id").value(1))
@@ -190,7 +190,7 @@ class SedeControllerTest {
             when(sedeService.listarSedesComFiltros(eq("Sede Central"), any(), any(), any()))
                 .thenReturn(List.of(sede));
 
-            mockMvc.perform(get("/sedes/listar?nome=Sede Central")
+            mockMvc.perform(get("/sedes?nome=Sede Central")
                     .with(jwt().authorities(() -> "ROLE_admin")))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[0].nome").value("Sede Central"));
@@ -202,7 +202,7 @@ class SedeControllerTest {
             when(sedeService.listarSedesComFiltros(any(), any(), any(), any()))
                 .thenReturn(List.of());
 
-            mockMvc.perform(get("/sedes/listar?nome=Inexistente")
+            mockMvc.perform(get("/sedes?nome=Inexistente")
                     .with(jwt().authorities(() -> "ROLE_admin")))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isEmpty());
@@ -274,7 +274,7 @@ class SedeControllerTest {
         @Test
         @DisplayName("Deve retornar 401 ao acessar sem autenticação")
         void deveRetornar401SemAutenticacao() throws Exception {
-            mockMvc.perform(get("/sedes/listar"))
+            mockMvc.perform(get("/sedes"))
                     .andExpect(status().isUnauthorized());
         }
     }
