@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile.db
+    container_name: sgmc-db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - sgmc-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sgmc-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/sgmc?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=motoclube_junior
+      - SPRING_DATASOURCE_PASSWORD=M@m2026
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://host.docker.internal:8089/realms/sgmc
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # Permite que o container da API resolva o IP do seu host físico
+    networks:
+      - sgmc-network
+
+networks:
+  sgmc-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
