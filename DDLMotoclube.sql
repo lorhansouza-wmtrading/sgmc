@@ -22,9 +22,7 @@ CREATE TABLE IF NOT EXISTS `sgmc`.`pais` (
   `nome` VARCHAR(150) NOT NULL,
   `continente` VARCHAR(50) NOT NULL,
   PRIMARY KEY (`pais_sigla`),
-  UNIQUE INDEX `pais_sigla_UNIQUE` (`pais_sigla` ASC) VISIBLE,
-  UNIQUE INDEX `pais_nome_UNIQUE` (`nome` ASC) VISIBLE,
-  UNIQUE INDEX `pais_regiao_UNIQUE` (`continente` ASC) VISIBLE)
+  UNIQUE INDEX `pais_nome_UNIQUE` (`nome` ASC) VISIBLE)
 ENGINE = InnoDB;
 
 
@@ -39,8 +37,6 @@ CREATE TABLE IF NOT EXISTS `sgmc`.`identificacao` (
   `data_emissao` DATE NOT NULL,
   `pais_sigla` CHAR(2) NOT NULL,
   PRIMARY KEY (`id_identificacao`),
-  INDEX `fk_identificacao_pais1_idx` (`pais_sigla` ASC) VISIBLE,
-  UNIQUE INDEX `id_identificacao_UNIQUE` (`id_identificacao` ASC) VISIBLE,
   CONSTRAINT `fk_identificacao_pais1`
     FOREIGN KEY (`pais_sigla`)
     REFERENCES `sgmc`.`pais` (`pais_sigla`)
@@ -58,10 +54,7 @@ CREATE TABLE IF NOT EXISTS `sgmc`.`estado_provincia` (
   `regiao` VARCHAR(255) NOT NULL,
   `pais_sigla` CHAR(2) NOT NULL,
   PRIMARY KEY (`estado_sigla`),
-  UNIQUE INDEX `uf_sigla_UNIQUE` (`estado_sigla` ASC) VISIBLE,
   UNIQUE INDEX `uf_nome_UNIQUE` (`nome` ASC) VISIBLE,
-  UNIQUE INDEX `regiao_UNIQUE` (`regiao` ASC) VISIBLE,
-  INDEX `fk_uf_pais1_idx` (`pais_sigla` ASC) VISIBLE,
   CONSTRAINT `fk_uf_pais1`
     FOREIGN KEY (`pais_sigla`)
     REFERENCES `sgmc`.`pais` (`pais_sigla`)
@@ -78,7 +71,6 @@ CREATE TABLE IF NOT EXISTS `sgmc`.`cidade` (
   `nome` VARCHAR(255) NOT NULL,
   `estado_sigla` VARCHAR(2) NOT NULL,
   PRIMARY KEY (`id_cidade`),
-  INDEX `fk_cidade_estado_provincia1_idx` (`estado_sigla` ASC) VISIBLE,
   CONSTRAINT `fk_cidade_estado_provincia1`
     FOREIGN KEY (`estado_sigla`)
     REFERENCES `sgmc`.`estado_provincia` (`estado_sigla`)
@@ -100,8 +92,6 @@ CREATE TABLE IF NOT EXISTS `sgmc`.`sede` (
   `ativa` BIT(1) NOT NULL DEFAULT 0 COMMENT '0 - ativa\n1 - não ativa',
   `id_cidade` INT NOT NULL,
   PRIMARY KEY (`id_sede`),
-  UNIQUE INDEX `idsede_UNIQUE` (`id_sede` ASC) VISIBLE,
-  INDEX `fk_sede_cidade1_idx` (`id_cidade` ASC) VISIBLE,
   CONSTRAINT `fk_sede_cidade1`
     FOREIGN KEY (`id_cidade`)
     REFERENCES `sgmc`.`cidade` (`id_cidade`)
@@ -134,9 +124,6 @@ CREATE TABLE IF NOT EXISTS `sgmc`.`membro` (
   `id_identificacao` INT NOT NULL,
   `id_sede` INT NOT NULL,
   PRIMARY KEY (`id_membro`),
-  UNIQUE INDEX `idmembro_UNIQUE` (`id_membro` ASC) VISIBLE,
-  INDEX `fk_membro_identificacao1_idx` (`id_identificacao` ASC) VISIBLE,
-  INDEX `fk_membro_sede1_idx` (`id_sede` ASC) VISIBLE,
   CONSTRAINT `fk_membro_identificacao1`
     FOREIGN KEY (`id_identificacao`)
     REFERENCES `sgmc`.`identificacao` (`id_identificacao`)
@@ -181,7 +168,6 @@ CREATE TABLE IF NOT EXISTS `sgmc`.`seguro` (
   `nome` VARCHAR(255) NOT NULL,
   `id_condicao_seguro` INT NOT NULL,
   PRIMARY KEY (`idseguro`),
-  INDEX `fk_seguro_condicao_seguro1_idx` (`id_condicao_seguro` ASC) VISIBLE,
   CONSTRAINT `fk_seguro_condicao_seguro1`
     FOREIGN KEY (`id_condicao_seguro`)
     REFERENCES `sgmc`.`condicao_seguro` (`idcondicao_seguro`)
@@ -196,8 +182,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `sgmc`.`marca` (
   `id_marca` INT NOT NULL AUTO_INCREMENT,
   `nome` VARCHAR(60) NULL,
-  PRIMARY KEY (`id_marca`),
-  UNIQUE INDEX `id_marca_UNIQUE` (`id_marca` ASC) VISIBLE)
+  PRIMARY KEY (`id_marca`))
 ENGINE = InnoDB;
 
 
@@ -210,7 +195,6 @@ CREATE TABLE IF NOT EXISTS `sgmc`.`modelo` (
   `cilindrada` INT NOT NULL,
   `id_marca` INT NOT NULL,
   PRIMARY KEY (`id_modelo`),
-  INDEX `fk_modelo_marca1_idx` (`id_marca` ASC) VISIBLE,
   CONSTRAINT `fk_modelo_marca1`
     FOREIGN KEY (`id_marca`)
     REFERENCES `sgmc`.`marca` (`id_marca`)
@@ -229,11 +213,7 @@ CREATE TABLE IF NOT EXISTS `sgmc`.`moto` (
   `id_membro` INT UNSIGNED NOT NULL,
   `id_seguro` INT NOT NULL,
   `id_modelo` INT NOT NULL,
-  UNIQUE INDEX `placa_UNIQUE` (`placa` ASC) VISIBLE,
-  INDEX `fk_moto_membro1_idx` (`id_membro` ASC) VISIBLE,
-  INDEX `fk_moto_seguro1_idx` (`id_seguro` ASC) VISIBLE,
   PRIMARY KEY (`placa`),
-  INDEX `fk_moto_modelo1_idx` (`id_modelo` ASC) VISIBLE,
   CONSTRAINT `fk_moto_membro1`
     FOREIGN KEY (`id_membro`)
     REFERENCES `sgmc`.`membro` (`id_membro`)
@@ -266,7 +246,6 @@ CREATE TABLE IF NOT EXISTS `sgmc`.`local` (
   `contato` VARCHAR(15) NULL,
   `id_cidade` INT NOT NULL,
   PRIMARY KEY (`id_local`),
-  INDEX `fk_local_cidade1_idx` (`id_cidade` ASC) VISIBLE,
   CONSTRAINT `fk_local_cidade1`
     FOREIGN KEY (`id_cidade`)
     REFERENCES `sgmc`.`cidade` (`id_cidade`)
@@ -287,7 +266,6 @@ CREATE TABLE IF NOT EXISTS `sgmc`.`evento` (
   `valor` DECIMAL(10,2) NULL,
   `id_local` INT NOT NULL,
   PRIMARY KEY (`id_evento`),
-  INDEX `fk_evento_local1_idx` (`id_local` ASC) VISIBLE,
   CONSTRAINT `fk_evento_local1`
     FOREIGN KEY (`id_local`)
     REFERENCES `sgmc`.`local` (`id_local`)
@@ -310,7 +288,6 @@ CREATE TABLE IF NOT EXISTS `sgmc`.`ficha_medica` (
   `observacoes` VARCHAR(255) NULL,
   `id_membro` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`id_ficha_medica`),
-  INDEX `fk_ficha_medica_membro1_idx` (`id_membro` ASC) VISIBLE,
   CONSTRAINT `fk_ficha_medica_membro1`
     FOREIGN KEY (`id_membro`)
     REFERENCES `sgmc`.`membro` (`id_membro`)
@@ -328,9 +305,6 @@ CREATE TABLE IF NOT EXISTS `sgmc`.`inscricao` (
   `data_inscricao` DATETIME NOT NULL,
   `moto_placa` VARCHAR(7) NULL,
   PRIMARY KEY (`id_evento`, `id_membro`),
-  INDEX `fk_evento_has_membro_membro1_idx` (`id_membro` ASC) VISIBLE,
-  INDEX `fk_evento_has_membro_evento1_idx` (`id_evento` ASC) VISIBLE,
-  INDEX `fk_participacao_moto1_idx` (`moto_placa` ASC) VISIBLE,
   CONSTRAINT `fk_evento_has_membro_evento1`
     FOREIGN KEY (`id_evento`)
     REFERENCES `sgmc`.`evento` (`id_evento`)
@@ -358,8 +332,6 @@ CREATE TABLE IF NOT EXISTS `sgmc`.`posse` (
   `data_inicio` DATE NULL,
   `data_fim` DATE NULL,
   PRIMARY KEY (`id_membro`, `id_cargo`),
-  INDEX `fk_membro_has_cargo_cargo1_idx` (`id_cargo` ASC) VISIBLE,
-  INDEX `fk_membro_has_cargo_membro1_idx` (`id_membro` ASC) VISIBLE,
   CONSTRAINT `fk_membro_has_cargo_membro1`
     FOREIGN KEY (`id_membro`)
     REFERENCES `sgmc`.`membro` (`id_membro`)
