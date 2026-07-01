@@ -92,6 +92,10 @@ public class EventoController implements EventoControllerOpenAPI {
         List<Inscricao> inscricoes = inscricoesRequestDTO.stream().map(dto -> {
             Membro membro = this.membroService.buscarPorId(dto.getIdMembro());
             
+            if (membro.getAtivo() != null && membro.getAtivo().equals(0)) {
+                throw new IllegalArgumentException("Membro inativo não pode se inscrever em eventos.");
+            }
+            
             Moto moto = null;
             if (dto.getPlacaMoto() != null && !dto.getPlacaMoto().isBlank()) {
                 moto = this.motoService.buscarPorPlaca(dto.getPlacaMoto());

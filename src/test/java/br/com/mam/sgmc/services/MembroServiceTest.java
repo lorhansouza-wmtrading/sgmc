@@ -55,6 +55,9 @@ class MembroServiceTest {
     @Mock
     private PosseRepository posseRepository;
 
+    @Mock
+    private br.com.mam.sgmc.repository.IdentificacaoRepository identificacaoRepository;
+
     @InjectMocks
     private MembroService membroService;
 
@@ -112,7 +115,7 @@ class MembroServiceTest {
     @Test
     @DisplayName("Deve salvar um membro com sucesso")
     void deveSalvarMembroComSucesso() {
-        when(membroRepository.findByNome(any())).thenReturn(null);
+        when(identificacaoRepository.findByIdentidade(any())).thenReturn(null);
         when(sedeRepository.findById(1L)).thenReturn(Optional.of(sede));
         when(paisRepository.findById("BR")).thenReturn(Optional.of(pais));
         when(membroRepository.save(any(Membro.class))).thenReturn(membro);
@@ -127,7 +130,7 @@ class MembroServiceTest {
     @Test
     @DisplayName("Deve salvar um membro e criar registro de Posse quando idCargo for informado")
     void deveSalvarMembroECriarPosse() {
-        when(membroRepository.findByNome(any())).thenReturn(null);
+        when(identificacaoRepository.findByIdentidade(any())).thenReturn(null);
         when(sedeRepository.findById(1L)).thenReturn(Optional.of(sede));
         when(paisRepository.findById("BR")).thenReturn(Optional.of(pais));
         when(membroRepository.save(any(Membro.class))).thenReturn(membro);
@@ -140,9 +143,9 @@ class MembroServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar exceção ao salvar membro com nome existente")
-    void deveLancarExcecaoAoSalvarMembroComNomeExistente() {
-        when(membroRepository.findByNome("João Silva")).thenReturn(membro);
+    @DisplayName("Deve lançar exceção ao salvar membro com CPF existente")
+    void deveLancarExcecaoAoSalvarMembroComCPFExistente() {
+        when(identificacaoRepository.findByIdentidade("12345678909")).thenReturn(new Identificacao());
 
         assertThrows(ResponseStatusException.class, () -> 
             membroService.salvarMembro(membro, null, 1L, "BR")
@@ -152,7 +155,7 @@ class MembroServiceTest {
     @Test
     @DisplayName("Deve lançar exceção ao salvar membro com sede inexistente")
     void deveLancarExcecaoAoSalvarMembroComSedeInexistente() {
-        when(membroRepository.findByNome(any())).thenReturn(null);
+        when(identificacaoRepository.findByIdentidade(any())).thenReturn(null);
         when(sedeRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> 
@@ -163,7 +166,7 @@ class MembroServiceTest {
     @Test
     @DisplayName("Deve lançar exceção ao salvar membro no Brasil sem CPF")
     void deveLancarExcecaoAoSalvarMembroNoBrasilSemCPF() {
-        when(membroRepository.findByNome(any())).thenReturn(null);
+        when(identificacaoRepository.findByIdentidade(any())).thenReturn(null);
         membro.getIdentidade().setTipo("RG");
 
         assertThrows(ResponseStatusException.class, () -> 
@@ -174,7 +177,7 @@ class MembroServiceTest {
     @Test
     @DisplayName("Deve lançar exceção ao salvar membro com país inexistente")
     void deveLancarExcecaoAoSalvarMembroComPaisInexistente() {
-        when(membroRepository.findByNome(any())).thenReturn(null);
+        when(identificacaoRepository.findByIdentidade(any())).thenReturn(null);
         when(paisRepository.findById("BR")).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> 
@@ -219,6 +222,24 @@ class MembroServiceTest {
 
         assertThrows(ResourceNotFoundException.class, () -> 
             membroService.atualizarMembro(membro, 99L, null, 1L, "BR")
+        );
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao atualizar membro com CPF que pertence a outro")
+    void deveLancarExcecaoAoAtualizarMembroComCPFDeOutroMembro() {
+        when(membroRepository.findById(1L)).thenReturn(Optional.of(membro));
+        
+        Identificacao identOutro = new Identificacao();
+        identOutro.setIdIdentificacao(2L); // Outra identificação cadastrada
+        Membro outroMembro = new Membro();
+        outroMembro.setId(2L);
+        identOutro.setMembro(outroMembro);
+
+        when(identificacaoRepository.findByIdentidade(any())).thenReturn(identOutro);
+
+        assertThrows(ResponseStatusException.class, () -> 
+            membroService.atualizarMembro(membro, 1L, null, null, "BR")
         );
     }
 
@@ -355,7 +376,7 @@ class MembroServiceTest {
     @Test
     @DisplayName("Deve salvar membro com ficha médica")
     void deveSalvarMembroComFichaMedica() {
-        when(membroRepository.findByNome(any())).thenReturn(null);
+        when(identificacaoRepository.findByIdentidade(any())).thenReturn(null);
         when(sedeRepository.findById(1L)).thenReturn(java.util.Optional.of(sede));
         when(paisRepository.findById("BR")).thenReturn(java.util.Optional.of(pais));
         when(membroRepository.save(any(Membro.class))).thenReturn(membro);

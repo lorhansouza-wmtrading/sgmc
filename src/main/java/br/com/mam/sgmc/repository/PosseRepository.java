@@ -9,4 +9,5 @@ import java.util.List;
 
 public interface PosseRepository extends JpaRepository<Posse, PossePk> {
     List<Posse> findByPossePkMembroId(Long idMembro);
+    List<Posse> findByPossePkCargoId(Long idCargo);
 }

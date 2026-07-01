@@ -193,6 +193,7 @@ class EventoControllerTest {
         br.com.mam.sgmc.model.Membro membroMock = new br.com.mam.sgmc.model.Membro();
         membroMock.setId(10L);
         membroMock.setNome("Membro Teste");
+        membroMock.setAtivo(1); // ATIVO
 
         br.com.mam.sgmc.api.dto.request.InscricaoRequestDTO dto = new br.com.mam.sgmc.api.dto.request.InscricaoRequestDTO();
         dto.setIdMembro(10L);
@@ -214,6 +215,28 @@ class EventoControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$[0].idMembro").value(10))
                 .andExpect(jsonPath("$[0].nomeMembro").value("Membro Teste"));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 400 ao tentar inscrever membro inativo")
+    void deveRetornar400AoInscreverMembroInativo() throws Exception {
+        br.com.mam.sgmc.model.Membro membroMock = new br.com.mam.sgmc.model.Membro();
+        membroMock.setId(10L);
+        membroMock.setNome("Membro Inativo");
+        membroMock.setAtivo(0); // INATIVO
+
+        br.com.mam.sgmc.api.dto.request.InscricaoRequestDTO dto = new br.com.mam.sgmc.api.dto.request.InscricaoRequestDTO();
+        dto.setIdMembro(10L);
+        dto.setPlacaMoto(null);
+
+        when(eventoService.buscarPorId(1L)).thenReturn(evento);
+        when(membroService.buscarPorId(10L)).thenReturn(membroMock);
+
+        mockMvc.perform(post("/eventos/1/inscricoes")
+                .with(jwt().authorities(() -> "ROLE_admin"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(List.of(dto))))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

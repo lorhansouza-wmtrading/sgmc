@@ -87,13 +87,48 @@ class PosseServiceTest {
     @Test
     @DisplayName("Deve salvar uma posse com sucesso")
     void deveSalvarPosseComSucesso() {
+        membro.setAtivo(1); // Ativo
         when(membroRepository.findById(1L)).thenReturn(Optional.of(membro));
         when(cargoRepository.findById(1L)).thenReturn(Optional.of(cargo));
+        when(posseRepository.findByPossePkCargoId(1L)).thenReturn(List.of());
         when(posseRepository.save(any(Posse.class))).thenReturn(posse);
 
         Posse result = posseService.salvarPosse(1L, 1L, LocalDate.now(), null);
 
         assertNotNull(result);
         verify(posseRepository).save(any(Posse.class));
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao salvar posse de membro inativo")
+    void deveLancarExcecaoAoSalvarPosseDeMembroInativo() {
+        membro.setAtivo(0); // Inativo
+        when(membroRepository.findById(1L)).thenReturn(Optional.of(membro));
+
+        assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> 
+            posseService.salvarPosse(1L, 1L, LocalDate.now(), null)
+        );
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao salvar posse com cargo sobreposto")
+    void deveLancarExcecaoAoSalvarPosseComCargoSobreposto() {
+        membro.setAtivo(1);
+        when(membroRepository.findById(1L)).thenReturn(Optional.of(membro));
+        when(cargoRepository.findById(1L)).thenReturn(Optional.of(cargo));
+
+        Membro outroMembro = new Membro();
+        outroMembro.setId(2L);
+        PossePk outroPk = new PossePk(cargo, outroMembro);
+        Posse posseExistente = new Posse();
+        posseExistente.setPossePk(outroPk);
+        posseExistente.setDataInicio(java.sql.Date.valueOf(LocalDate.now().minusDays(5)));
+        posseExistente.setDataFim(java.sql.Date.valueOf(LocalDate.now().plusDays(5)));
+
+        when(posseRepository.findByPossePkCargoId(1L)).thenReturn(List.of(posseExistente));
+
+        assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> 
+            posseService.salvarPosse(1L, 1L, LocalDate.now(), null)
+        );
     }
 }

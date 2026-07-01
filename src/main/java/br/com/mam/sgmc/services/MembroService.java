@@ -21,6 +21,7 @@ import br.com.mam.sgmc.repository.FichaMedicaRepository;
 import br.com.mam.sgmc.repository.SedeRepository;
 import br.com.mam.sgmc.repository.MembroRepository;
 import br.com.mam.sgmc.repository.PaisRepository;
+import br.com.mam.sgmc.repository.IdentificacaoRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -32,10 +33,14 @@ public class MembroService {
     private final PaisRepository paisRepository;
     private final CargoRepository cargoRepository;
     private final PosseRepository posseRepository;
+    private final IdentificacaoRepository identificacaoRepository;
 
     public Membro salvarMembro(Membro membro, Long idCargo, Long idSede, String paisSigla) {
-        if (this.membroRepository.findByNome(membro.getNome()) != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este nome já existe.");
+        if (membro.getIdentidade() != null && membro.getIdentidade().getIdentidade() != null) {
+            Identificacao identExistente = identificacaoRepository.findByIdentidade(membro.getIdentidade().getIdentidade());
+            if (identExistente != null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Já existe um membro cadastrado com este documento/CPF.");
+            }
         }
         
 
@@ -122,6 +127,13 @@ public class MembroService {
         if (membro.getIdentidade() != null && paisSigla != null) {
             if ("BR".equalsIgnoreCase(paisSigla) && !"CPF".equalsIgnoreCase(membro.getIdentidade().getTipo())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Para o Brasil, o tipo de identificação deve ser CPF.");
+            }
+            
+            if (membro.getIdentidade().getIdentidade() != null) {
+                Identificacao identExistente = identificacaoRepository.findByIdentidade(membro.getIdentidade().getIdentidade());
+                if (identExistente != null && (membroExistente.getIdentidade() == null || !identExistente.getIdIdentificacao().equals(membroExistente.getIdentidade().getIdIdentificacao()))) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Já existe um membro cadastrado com este documento/CPF.");
+                }
             }
             
             Identificacao identidade = membro.getIdentidade();

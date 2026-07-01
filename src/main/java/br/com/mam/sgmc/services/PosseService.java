@@ -33,15 +33,39 @@ public class PosseService {
     public Posse salvarPosse(Long idMembro, Long idCargo, LocalDate dataInicio, LocalDate dataFim) {
         Membro membro = membroRepository.findById(idMembro)
                 .orElseThrow(() -> new ResourceNotFoundException("Membro não encontrado com o ID: " + idMembro));
+        
+        if (membro.getAtivo() != null && membro.getAtivo() == 0) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Membro inativo não pode ocupar cargos.");
+        }
+
         Cargo cargo = cargoRepository.findById(idCargo)
                 .orElseThrow(() -> new ResourceNotFoundException("Cargo não encontrado com o ID: " + idCargo));
+
+        LocalDate newStart = dataInicio != null ? dataInicio : LocalDate.now();
+        LocalDate newEnd = dataFim;
+
+        List<Posse> possesDoCargo = posseRepository.findByPossePkCargoId(idCargo);
+        for (Posse posseExistente : possesDoCargo) {
+            if (!posseExistente.getPossePk().getMembro().getId().equals(idMembro)) {
+                LocalDate startE = posseExistente.getDataInicio().toLocalDate();
+                LocalDate endE = posseExistente.getDataFim() != null ? posseExistente.getDataFim().toLocalDate() : null;
+                
+                boolean startNewBeforeOrEqualEndE = (endE == null || !newStart.isAfter(endE));
+                boolean endNewAfterOrEqualStartE = (newEnd == null || !newEnd.isBefore(startE));
+                
+                if (startNewBeforeOrEqualEndE && endNewAfterOrEqualStartE) {
+                    throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, 
+                        "Já existe outro membro ocupando este cargo no período informado.");
+                }
+            }
+        }
 
         PossePk possePk = new PossePk(cargo, membro);
         Posse posse = new Posse();
         posse.setPossePk(possePk);
-        posse.setDataInicio(dataInicio != null ? Date.valueOf(dataInicio) : Date.valueOf(LocalDate.now()));
-        if (dataFim != null) {
-            posse.setDataFim(Date.valueOf(dataFim));
+        posse.setDataInicio(Date.valueOf(newStart));
+        if (newEnd != null) {
+            posse.setDataFim(Date.valueOf(newEnd));
         }
 
         return posseRepository.save(posse);
